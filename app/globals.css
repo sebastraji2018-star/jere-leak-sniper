@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0a0a;
+    color: white;
+    font-family: var(--font-inter), sans-serif;
+  }
+}
+
+@layer utilities {
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(245, 197, 24, 0.15);
+  }
+  .glow-gold-strong {
+    box-shadow: 0 0 30px rgba(245, 197, 24, 0.3);
+  }
+  @keyframes scanPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245, 197, 24, 0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(245, 197, 24, 0); }
+  }
+  .scan-pulse { animation: scanPulse 2s ease-in-out infinite; }
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide-in { animation: slideInUp 0.4s ease-out; }
+  @keyframes scanLine {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+  .scan-line { animation: scanLine 2s ease-in-out infinite; }
+  @keyframes goldShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  .gold-shimmer {
+    background: linear-gradient(90deg, #F5C518, #FFE066, #E8A000, #F5C518);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: goldShimmer 3s linear infinite;
+  }
+
+  /* 3D rotation — perspective en el padre, sin will-change para que mix-blend-mode funcione */
+  @keyframes spin3d {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+  .spin-3d {
+    animation: spin3d 10s linear infinite;
+    /* mix-blend-mode va en el padre, no aquí, para evitar conflicto con la capa GPU del transform */
+  }
+  .spin-3d:hover {
+    animation-play-state: paused;
+  }
+}
