@@ -1,0 +1,18 @@
+name: Jere Klein Leak Scanner
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'   # cada 2 horas (cambia a '0 * * * *' para cada 1 hora)
+  workflow_dispatch:         # permite ejecutar manualmente desde GitHub
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scan
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 60 \
+            --fail \
+            https://jere-sniper.vercel.app/api/cron
