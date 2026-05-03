@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [monitoringStart, setMonitoringStart] = useState('')
   const [quotaUsed, setQuotaUsed] = useState(0)
   const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle')
+  const [resetStatus, setResetStatus] = useState<'idle' | 'saving' | 'ok'>('idle')
   const [newAccount, setNewAccount] = useState({ platform: 'youtube', account_id: '', account_name: '' })
 
   async function fetchData() {
@@ -36,12 +37,15 @@ export default function SettingsPage() {
   }
 
   async function handleResetDate() {
+    setResetStatus('saving')
     await fetch('/api/settings/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key: 'monitoring_start_date', value: new Date().toISOString() })
     })
-    fetchData()
+    await fetchData()
+    setResetStatus('ok')
+    setTimeout(() => setResetStatus('idle'), 3000)
   }
 
   async function handleAddAccount(e: React.FormEvent) {
@@ -183,9 +187,14 @@ export default function SettingsPage() {
         </div>
         <button
           onClick={handleResetDate}
-          className="bg-[#0a0a0a] border border-white/8 text-gray-300 px-5 py-2.5 rounded-xl text-sm hover:border-[#F5C518]/40 hover:text-white transition-all duration-200"
+          disabled={resetStatus === 'saving'}
+          className={`px-5 py-2.5 rounded-xl text-sm transition-all duration-200 disabled:opacity-60 ${
+            resetStatus === 'ok'
+              ? 'bg-[#F5C518]/20 text-[#F5C518] border border-[#F5C518]/30'
+              : 'bg-[#0a0a0a] border border-white/8 text-gray-300 hover:border-[#F5C518]/40 hover:text-white'
+          }`}
         >
-          Resetear fecha de inicio a ahora
+          {resetStatus === 'saving' ? 'Guardando...' : resetStatus === 'ok' ? '✓ Fecha reseteada' : 'Resetear fecha de inicio a ahora'}
         </button>
       </div>
     </div>
