@@ -1,7 +1,12 @@
 import { supabaseAdmin } from './supabase'
 
+// Usa zona horaria de Chile para que la cuota se reinicie a medianoche local
+function getTodayChile(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' })
+}
+
 export async function getQuotaUsedToday(): Promise<number> {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayChile()
   const { data, error } = await supabaseAdmin
     .from('youtube_quota')
     .select('units_used')
@@ -12,7 +17,7 @@ export async function getQuotaUsedToday(): Promise<number> {
 }
 
 export async function addQuotaUsed(units: number): Promise<void> {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayChile()
   const current = await getQuotaUsedToday()
   await supabaseAdmin
     .from('youtube_quota')

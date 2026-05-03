@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' })
 
   const [leaksRes, totalRes, keywordsRes, quotaRes, logRes, historyRes] = await Promise.all([
     supabaseAdmin.from('detected_leaks').select('*').order('detected_at', { ascending: false }).limit(10),
