@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { runFullScan } from '@/lib/scanner'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST() {
-  runFullScan().catch(console.error)
-  return NextResponse.json({ ok: true, message: 'Scan iniciado' })
+  await runFullScan()
+  return NextResponse.json({ ok: true, message: 'Scan completado' })
 }
