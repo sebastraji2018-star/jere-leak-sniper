@@ -61,41 +61,77 @@ function QuotaBar({ used, max = 10000 }: { used: number; max?: number }) {
   )
 }
 
-function NextScanCountdown() {
+function NextScanCountdown({ lastScan, onZero }: { lastScan: string | null, onZero: () => void }) {
   const [t, setT] = useState({ h: 0, m: 0, s: 0, pct: 0 })
+  const firedRef = useRef(false)
+
+  useEffect(() => {
+    firedRef.current = false
+  }, [lastScan])
+
   useEffect(() => {
     function calc() {
-      const now = new Date()
-      const total = 2 * 3600
-      const elapsed = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) % total
-      const rem = total - elapsed
-      setT({ h: Math.floor(rem / 3600), m: Math.floor((rem % 3600) / 60), s: rem % 60, pct: Math.round((elapsed / total) * 100) })
+      const now = Date.now()
+      const total = 2 * 3600 * 1000
+      // Próximo scan = último scan + 2h (o si no hay, siguiente hora par UTC)
+      let nextScan: number
+      if (lastScan) {
+        nextScan = new Date(lastScan).getTime() + total
+      } else {
+        const nowDate = new Date()
+        const h = nowDate.getUTCHours()
+        const nextH = Math.ceil((h + 1) / 2) * 2
+        nextScan = Date.UTC(nowDate.getUTCFullYear(), nowDate.getUTCMonth(), nowDate.getUTCDate(), nextH % 24)
+        if (nextScan <= now) nextScan += total
+      }
+      const rem = Math.max(0, nextScan - now)
+      const elapsed = total - rem
+      const pct = Math.min(100, Math.round((elapsed / total) * 100))
+      setT({
+        h: Math.floor(rem / 3600000),
+        m: Math.floor((rem % 3600000) / 60000),
+        s: Math.floor((rem % 60000) / 1000),
+        pct
+      })
+      // Cuando llega a 0, refresca el dashboard después de 30s (tiempo para que el cron corra)
+      if (rem === 0 && !firedRef.current) {
+        firedRef.current = true
+        setTimeout(() => { onZero(); firedRef.current = false }, 30000)
+      }
     }
     calc()
     const iv = setInterval(calc, 1000)
     return () => clearInterval(iv)
-  }, [])
+  }, [lastScan, onZero])
+
   const r = 36
   const circ = 2 * Math.PI * r
   const offset = circ - (t.pct / 100) * circ
+  const isImminent = t.h === 0 && t.m < 5
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-24 h-24">
         <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="5" />
-          <circle cx="40" cy="40" r={r} fill="none" stroke="#F5C518" strokeWidth="5" strokeLinecap="round"
-            strokeDasharray={circ} strokeDashoffset={offset} className="transition-all duration-1000" />
+          <circle cx="40" cy="40" r={r} fill="none"
+            stroke={isImminent ? '#22c55e' : '#F5C518'}
+            strokeWidth="5" strokeLinecap="round"
+            strokeDasharray={circ} strokeDashoffset={offset}
+            className="transition-all duration-1000" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center" suppressHydrationWarning>
           <div className="text-center">
-            <div className="text-xs font-mono font-bold text-[#F5C518] leading-none">
+            <div className={`text-xs font-mono font-bold leading-none ${isImminent ? 'text-green-400' : 'text-[#F5C518]'}`}>
               {String(t.h).padStart(2,'0')}:{String(t.m).padStart(2,'0')}
             </div>
             <div className="text-[9px] text-gray-700 mt-0.5">restante</div>
           </div>
         </div>
       </div>
-      <div className="text-xs text-gray-600 text-center leading-tight">Próximo<br/>scan auto</div>
+      <div className={`text-xs text-center leading-tight ${isImminent ? 'text-green-400' : 'text-gray-600'}`}>
+        {isImminent ? 'Escaneando\npronto...' : 'Próximo\nscan auto'}
+      </div>
     </div>
   )
 }
@@ -299,7 +335,7 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 flex items-center justify-center hover:border-[#F5C518]/15 transition-colors">
-          <NextScanCountdown />
+          <NextScanCountdown lastScan={data.lastScan} onZero={fetchData} />
         </div>
       </div>
 
