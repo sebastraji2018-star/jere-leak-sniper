@@ -161,20 +161,25 @@ export default function Dashboard() {
     setScanStatus('scanning')
     setScanMsg('Buscando en YouTube con tus keywords...')
     try {
-      await fetch('/api/scan', { method: 'POST' })
-      setScanMsg('Analizando y enviando reporte a Telegram...')
-      setTimeout(async () => {
-        await fetchData()
-        setScanStatus('done')
-        setScanMsg('✓ Completado — revisá Telegram para el reporte')
-        setScanning(false)
-        setTimeout(() => { setScanStatus('idle'); setScanMsg('') }, 6000)
-      }, 12000)
-    } catch {
-      setScanStatus('error')
-      setScanMsg('Error al conectar')
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        signal: AbortSignal.timeout(55000)
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      // Scan completed server-side (Telegram already sent) — refresh immediately
+      await fetchData()
+      setScanStatus('done')
+      setScanMsg('Completado — revisá Telegram para el reporte')
       setScanning(false)
-      setTimeout(() => { setScanStatus('idle'); setScanMsg('') }, 3000)
+      setTimeout(() => { setScanStatus('idle'); setScanMsg('') }, 6000)
+    } catch (err) {
+      const isTimeout = err instanceof Error && err.name === 'TimeoutError'
+      setScanStatus('error')
+      setScanMsg(isTimeout ? 'Timeout — el scan sigue corriendo, revisá Telegram' : 'Error al conectar')
+      setScanning(false)
+      // On timeout the server-side scan may still complete, so refresh after a short delay
+      if (isTimeout) setTimeout(fetchData, 5000)
+      setTimeout(() => { setScanStatus('idle'); setScanMsg('') }, 5000)
     }
   }
 
