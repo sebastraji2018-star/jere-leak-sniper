@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../supabase'
 import { scanYouTube } from './youtube'
+import { scanSpotify } from './spotify'
 import { sendScanReport } from '../notifications/telegram'
 
 async function getActiveKeywords(): Promise<string[]> {
@@ -56,8 +57,28 @@ export async function runYouTubeScan(): Promise<{ leaksFound: number; unitsUsed:
 }
 
 export async function runFullScan(): Promise<void> {
-  const result = await runYouTubeScan()
+  const keywords = await getActiveKeywords()
 
+  // Run YouTube and Spotify scans in parallel — they are independent
+  const [youtubeResult, spotifyResult] = await Promise.all([
+    runYouTubeScan(),
+    (async () => {
+      const logId = await createScanLog('spotify')
+      try {
+        const result = await scanSpotify(keywords)
+        await completeScanLog(logId, {
+          keywordsScanned: keywords.length,
+          leaksFound: result.leaksFound
+        })
+        return result
+      } catch (err) {
+        await completeScanLog(logId, { keywordsScanned: keywords.length, leaksFound: 0, error: String(err) })
+        return { leaksFound: 0, tracksScanned: 0, skipped: true, reason: String(err) }
+      }
+    })()
+  ])
+
+  // Fetch leaks detected in the last 5 minutes to include in the report
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
   const { data: recentLeaks } = await supabaseAdmin
     .from('detected_leaks')
@@ -66,8 +87,10 @@ export async function runFullScan(): Promise<void> {
     .order('detected_at', { ascending: false })
 
   await sendScanReport({
-    leaksFound: result.leaksFound,
-    youtubeKeywords: result.keywords.length,
+    leaksFound: youtubeResult.leaksFound + spotifyResult.leaksFound,
+    youtubeKeywords: keywords.length,
+    spotifyKeywords: keywords.length,
+    spotifyTracksScanned: spotifyResult.tracksScanned,
     leaks: recentLeaks ?? []
   })
 }

@@ -37,11 +37,14 @@ export async function sendLeakNotification(leak: {
   url: string
   published_at: string | null
 }): Promise<void> {
+  const platformLabel = leak.platform === 'spotify' ? 'Spotify' : 'YouTube'
+  const platformIcon = leak.platform === 'spotify' ? '🎵' : '▶️'
+
   const text = [
     '🚨 *FILTRACIÓN DETECTADA — JERE KLEIN*',
     '',
     `🎬 *${leak.title}*`,
-    `▶️ Plataforma: YouTube`,
+    `${platformIcon} Plataforma: ${platformLabel}`,
     `🔑 Keyword: \`${leak.keyword_matched}\``,
     `🔗 ${leak.url}`,
     `📅 Subido: ${formatDate(leak.published_at)}`,
@@ -54,41 +57,51 @@ export async function sendLeakNotification(leak: {
 export async function sendScanReport(stats: {
   leaksFound: number
   youtubeKeywords: number
+  spotifyKeywords: number
+  spotifyTracksScanned: number
   leaks: Array<{ title: string; platform: string; url: string; keyword_matched: string }>
 }): Promise<void> {
   const now = formatDate(new Date().toISOString())
+
   if (stats.leaksFound === 0) {
     const text = [
       '✅ *Monitoreo completado — Sin novedades*',
       '',
       `🕐 ${now}`,
       `▶️ YouTube: ${stats.youtubeKeywords} keywords escaneadas`,
+      `🎵 Spotify: ${stats.spotifyTracksScanned} tracks revisados`,
       '',
       '_No se filtró nada de Jere Klein en este ciclo._'
     ].join('\n')
     await sendTelegramMessage(text)
-  } else {
-    const leakLines = stats.leaks.map((l, i) => [
-      `${i + 1}. 🎬 *${l.title}*`,
+    return
+  }
+
+  const leakLines = stats.leaks.map((l, i) => {
+    const icon = l.platform === 'spotify' ? '🎵' : '▶️'
+    return [
+      `${i + 1}. ${icon} *${l.title}*`,
       `   🔑 Keyword: \`${l.keyword_matched}\``,
       `   🔗 ${l.url}`
-    ].join('\n')).join('\n\n')
-    const text = [
-      `🚨 *FILTRACIÓN DETECTADA — JERE KLEIN*`,
-      `${stats.leaksFound} video${stats.leaksFound > 1 ? 's' : ''} filtrado${stats.leaksFound > 1 ? 's' : ''} en YouTube`,
-      '',
-      leakLines,
-      '',
-      `🕐 ${now}`,
-      '_⚡ Borrar inmediatamente — Leak Sniper_'
     ].join('\n')
-    await sendTelegramMessage(text)
-  }
+  }).join('\n\n')
+
+  const total = stats.leaksFound
+  const text = [
+    `🚨 *FILTRACIÓN DETECTADA — JERE KLEIN*`,
+    `${total} filtración${total > 1 ? 'es' : ''} detectada${total > 1 ? 's' : ''} (YouTube + Spotify)`,
+    '',
+    leakLines,
+    '',
+    `🕐 ${now}`,
+    '_⚡ Borrar inmediatamente — Leak Sniper_'
+  ].join('\n')
+  await sendTelegramMessage(text)
 }
 
 export async function sendTestNotification(): Promise<{ ok: boolean; error?: string }> {
   return sendTelegramMessage(
-    '✅ *Jere Klein Leak Sniper — Conectado*\n\nLas notificaciones están funcionando.\n\n_Recibirás una alerta aquí cada vez que se detecte contenido filtrado._'
+    '✅ *Jere Klein Leak Sniper — Conectado*\n\nLas notificaciones están funcionando.\n\n_Recibirás una alerta aquí cada vez que se detecte contenido filtrado en YouTube o Spotify._'
   )
 }
 
