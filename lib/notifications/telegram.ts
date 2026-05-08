@@ -37,8 +37,10 @@ export async function sendLeakNotification(leak: {
   url: string
   published_at: string | null
 }): Promise<void> {
-  const platformLabel = leak.platform === 'spotify' ? 'Spotify' : 'YouTube'
-  const platformIcon = leak.platform === 'spotify' ? '🎵' : '▶️'
+  let platformLabel = 'YouTube'
+  let platformIcon = '▶️'
+  if (leak.platform === 'spotify') { platformLabel = 'Spotify'; platformIcon = '🎵' }
+  else if (leak.platform === 'soundcloud') { platformLabel = 'SoundCloud'; platformIcon = '🟠' }
 
   const text = [
     '🚨 *FILTRACIÓN DETECTADA — JERE KLEIN*',
@@ -59,6 +61,7 @@ export async function sendScanReport(stats: {
   youtubeKeywords: number
   spotifyKeywords: number
   spotifyTracksScanned: number
+  soundcloudTracksScanned: number
   leaks: Array<{ title: string; platform: string; url: string; keyword_matched: string }>
 }): Promise<void> {
   const now = formatDate(new Date().toISOString())
@@ -70,6 +73,7 @@ export async function sendScanReport(stats: {
       `🕐 ${now}`,
       `▶️ YouTube: ${stats.youtubeKeywords} keywords escaneadas`,
       `🎵 Spotify: ${stats.spotifyTracksScanned} tracks revisados`,
+      `🟠 SoundCloud: ${stats.soundcloudTracksScanned} tracks revisados`,
       '',
       '_No se filtró nada de Jere Klein en este ciclo._'
     ].join('\n')
@@ -78,7 +82,9 @@ export async function sendScanReport(stats: {
   }
 
   const leakLines = stats.leaks.map((l, i) => {
-    const icon = l.platform === 'spotify' ? '🎵' : '▶️'
+    let icon = '▶️'
+    if (l.platform === 'spotify') icon = '🎵'
+    else if (l.platform === 'soundcloud') icon = '🟠'
     return [
       `${i + 1}. ${icon} *${l.title}*`,
       `   🔑 Keyword: \`${l.keyword_matched}\``,
@@ -89,7 +95,7 @@ export async function sendScanReport(stats: {
   const total = stats.leaksFound
   const text = [
     `🚨 *FILTRACIÓN DETECTADA — JERE KLEIN*`,
-    `${total} filtración${total > 1 ? 'es' : ''} detectada${total > 1 ? 's' : ''} (YouTube + Spotify)`,
+    `${total} filtración${total > 1 ? 'es' : ''} detectada${total > 1 ? 's' : ''} (YouTube + Spotify + SoundCloud)`,
     '',
     leakLines,
     '',
@@ -101,7 +107,7 @@ export async function sendScanReport(stats: {
 
 export async function sendTestNotification(): Promise<{ ok: boolean; error?: string }> {
   return sendTelegramMessage(
-    '✅ *Jere Klein Leak Sniper — Conectado*\n\nLas notificaciones están funcionando.\n\n_Recibirás una alerta aquí cada vez que se detecte contenido filtrado en YouTube o Spotify._'
+    '✅ *Jere Klein Leak Sniper — Conectado*\n\nLas notificaciones están funcionando.\n\n_Recibirás una alerta aquí cada vez que se detecte contenido filtrado en YouTube, Spotify o SoundCloud._'
   )
 }
 

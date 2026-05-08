@@ -158,6 +158,7 @@ export default function KeywordsPage() {
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/15 px-1.5 py-0.5 rounded font-medium">▶ YouTube</span>
                     <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 border border-[#1DB954]/20 px-1.5 py-0.5 rounded font-medium">🎵 Spotify</span>
+                    <span className="text-[10px] text-[#FF5500] bg-[#FF5500]/10 border border-[#FF5500]/20 px-1.5 py-0.5 rounded font-medium">🟠 SoundCloud</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${kw.active ? 'text-[#F5C518] bg-[#F5C518]/10 border border-[#F5C518]/20' : 'text-gray-600 bg-white/3 border border-white/5'}`}>
                       {kw.active ? 'Activa' : 'Inactiva'}
                     </span>

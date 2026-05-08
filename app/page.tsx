@@ -34,6 +34,7 @@ interface DashboardData {
   isActive: boolean
   scanHistory: ScanLog[]
   spotifyLeaks: number
+  soundcloudLeaks: number
 }
 
 function QuotaBar({ used, max = 10000 }: { used: number; max?: number }) {
@@ -321,7 +322,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#F5C518]/15 transition-colors group">
           <div className="text-xs text-gray-600 mb-3 uppercase tracking-wider font-medium">Filtraciones detectadas</div>
           <div className="flex items-end justify-between">
@@ -344,6 +345,21 @@ export default function Dashboard() {
               {data.spotifyLeaks}
             </div>
             <span className="text-lg pb-1">🎵</span>
+          </div>
+          <div className="text-xs text-gray-700 mt-2">tracks sospechosos detectados</div>
+        </div>
+
+        {/* SoundCloud card */}
+        <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#FF5500]/20 transition-colors group">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[#FF5500] text-sm">🟠</span>
+            <div className="text-xs text-gray-600 uppercase tracking-wider font-medium">SoundCloud monitoreado</div>
+          </div>
+          <div className="flex items-end justify-between">
+            <div className="text-4xl font-bold group-hover:transition-colors" style={{ color: data.soundcloudLeaks > 0 ? '#FF5500' : undefined }}>
+              {data.soundcloudLeaks}
+            </div>
+            <span className="text-lg pb-1">🟠</span>
           </div>
           <div className="text-xs text-gray-700 mt-2">tracks sospechosos detectados</div>
         </div>
@@ -443,7 +459,7 @@ export default function Dashboard() {
                   <tr key={leak.id} className="hover:bg-white/2 transition-colors">
                     <td className="px-5 py-3.5 max-w-[200px]">
                       <div className="flex items-center gap-2">
-                        <span className="flex-shrink-0 text-base">{leak.platform === 'spotify' ? '🎵' : '▶️'}</span>
+                        <span className="flex-shrink-0 text-base">{leak.platform === 'spotify' ? '🎵' : leak.platform === 'soundcloud' ? '🟠' : '▶️'}</span>
                         <span className="font-medium text-sm truncate">{leak.title}</span>
                       </div>
                     </td>
@@ -457,8 +473,8 @@ export default function Dashboard() {
                     <td className="px-5 py-3.5">
                       <a href={leak.url} target="_blank" rel="noopener noreferrer"
                         className="text-xs font-medium hover:underline"
-                        style={{ color: leak.platform === 'spotify' ? '#1DB954' : '#F5C518' }}>
-                        {leak.platform === 'spotify' ? 'Ver en Spotify ↗' : 'Ver en YouTube ↗'}
+                        style={{ color: leak.platform === 'spotify' ? '#1DB954' : leak.platform === 'soundcloud' ? '#FF5500' : '#F5C518' }}>
+                        {leak.platform === 'spotify' ? 'Ver en Spotify ↗' : leak.platform === 'soundcloud' ? 'Ver en SoundCloud ↗' : 'Ver en YouTube ↗'}
                       </a>
                     </td>
                   </tr>

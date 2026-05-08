@@ -11,6 +11,53 @@ interface Leak {
   published_at: string | null
   detected_at: string
   notified: boolean
+  managed: boolean
+}
+
+function platformIcon(platform: string): string {
+  if (platform === 'spotify') return '🎵'
+  if (platform === 'soundcloud') return '🟠'
+  return '▶️'
+}
+
+function PlatformLink({ leak }: { leak: Leak }) {
+  if (leak.platform === 'spotify') {
+    return (
+      <a
+        href={leak.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+        style={{ color: '#1DB954' }}
+      >
+        🎵 Ver en Spotify ↗
+      </a>
+    )
+  }
+  if (leak.platform === 'soundcloud') {
+    return (
+      <a
+        href={leak.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+        style={{ color: '#FF5500' }}
+      >
+        🟠 Ver en SoundCloud ↗
+      </a>
+    )
+  }
+  return (
+    <a
+      href={leak.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+      style={{ color: '#F5C518' }}
+    >
+      ▶️ Ver en YouTube ↗
+    </a>
+  )
 }
 
 export default function LeaksPage() {
@@ -28,18 +75,40 @@ export default function LeaksPage() {
     fetchLeaks()
   }, [])
 
+  async function toggleManaged(leak: Leak) {
+    const nextManaged = !leak.managed
+    // Optimistic update
+    setLeaks(prev => prev.map(l => l.id === leak.id ? { ...l, managed: nextManaged } : l))
+    try {
+      await fetch('/api/leaks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: leak.id, managed: nextManaged })
+      })
+    } catch {
+      // Revert on failure
+      setLeaks(prev => prev.map(l => l.id === leak.id ? { ...l, managed: leak.managed } : l))
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Filtraciones detectadas</h1>
           <p className="text-gray-500 text-sm mt-1">
-            {loading ? 'Cargando...' : `${leaks.length} resultado${leaks.length !== 1 ? 's' : ''} en YouTube`}
+            {loading ? 'Cargando...' : `${leaks.length} resultado${leaks.length !== 1 ? 's' : ''} en todas las plataformas`}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-600 bg-[#111111] border border-white/5 px-4 py-2 rounded-xl">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
           <span>▶ YouTube</span>
+          <span className="w-px h-3 bg-white/10 mx-0.5" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></span>
+          <span>🎵 Spotify</span>
+          <span className="w-px h-3 bg-white/10 mx-0.5" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FF5500]"></span>
+          <span>🟠 SoundCloud</span>
         </div>
       </div>
 
@@ -53,7 +122,7 @@ export default function LeaksPage() {
             <div className="text-5xl mb-4 opacity-30">🎬</div>
             <div className="text-gray-400 font-medium text-sm">Sin filtraciones registradas</div>
             <div className="text-gray-600 text-xs mt-2 max-w-xs mx-auto">
-              El sistema escaneará YouTube automáticamente. Volvé después del próximo ciclo.
+              El sistema escaneará YouTube, Spotify y SoundCloud automáticamente. Volvé después del próximo ciclo.
             </div>
           </div>
         ) : (
@@ -67,14 +136,21 @@ export default function LeaksPage() {
                   <th className="text-left px-5 py-3 font-medium">Subido</th>
                   <th className="text-left px-5 py-3 font-medium">Detectado</th>
                   <th className="text-left px-5 py-3 font-medium">Notif.</th>
+                  <th className="text-left px-5 py-3 font-medium">Gestionado</th>
                   <th className="text-left px-5 py-3 font-medium">Enlace</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/3">
                 {leaks.map(leak => (
-                  <tr key={leak.id} className="hover:bg-white/2 transition-colors">
+                  <tr
+                    key={leak.id}
+                    className={`hover:bg-white/2 transition-colors ${leak.managed ? 'opacity-50' : ''}`}
+                  >
                     <td className="px-5 py-3.5 max-w-[200px]">
-                      <span className="font-medium text-sm truncate block">{leak.title}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="flex-shrink-0 text-base">{platformIcon(leak.platform)}</span>
+                        <span className="font-medium text-sm truncate block">{leak.title}</span>
+                      </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-[#F5C518] text-xs bg-[#F5C518]/8 border border-[#F5C518]/20 px-2 py-0.5 rounded font-mono">
@@ -96,14 +172,20 @@ export default function LeaksPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <a
-                        href={leak.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-[#F5C518] hover:underline"
+                      <button
+                        onClick={() => toggleManaged(leak)}
+                        title={leak.managed ? 'Marcar como no gestionado' : 'Marcar como gestionado'}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
+                          leak.managed
+                            ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                            : 'bg-transparent border border-gray-700 text-transparent hover:border-gray-500'
+                        }`}
                       >
-                        Abrir en YouTube ↗
-                      </a>
+                        {leak.managed ? '✅' : ''}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <PlatformLink leak={leak} />
                     </td>
                   </tr>
                 ))}

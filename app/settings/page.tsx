@@ -69,8 +69,6 @@ export default function SettingsPage() {
     fetchData()
   }
 
-  const mask = (s: string) => s ? s.slice(0, 6) + '...' + s.slice(-4) : '—'
-
   return (
     <div className="space-y-6">
       <div>
@@ -87,11 +85,17 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3">
             <div className="text-xs text-gray-600 mb-1.5 uppercase tracking-wider">Bot Token</div>
-            <div className="font-mono text-sm text-gray-300">{mask('8645317958:AAH8eWekN7lnZegM4csgHSLye6KmA28qAsw')}</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-gray-500">••••••••••</span>
+              <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded font-medium">Configurado ✓</span>
+            </div>
           </div>
           <div className="bg-[#0a0a0a] border border-white/5 rounded-xl px-4 py-3">
             <div className="text-xs text-gray-600 mb-1.5 uppercase tracking-wider">Chat ID</div>
-            <div className="font-mono text-sm text-gray-300">-5289696392</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-gray-500">••••••••••</span>
+              <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded font-medium">Configurado ✓</span>
+            </div>
           </div>
         </div>
         <button
@@ -120,6 +124,7 @@ export default function SettingsPage() {
             className="bg-[#0a0a0a] border border-white/8 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#F5C518]/50 transition-colors"
           >
             <option value="youtube">YouTube</option>
+            <option value="spotify">🎵 Spotify</option>
           </select>
           <input
             value={newAccount.account_id}

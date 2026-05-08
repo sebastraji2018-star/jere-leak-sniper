@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../supabase'
 import { scanYouTube } from './youtube'
 import { scanSpotify } from './spotify'
+import { scanSoundCloud } from './soundcloud'
 import { sendScanReport } from '../notifications/telegram'
 
 async function getActiveKeywords(): Promise<string[]> {
@@ -59,13 +60,27 @@ export async function runYouTubeScan(): Promise<{ leaksFound: number; unitsUsed:
 export async function runFullScan(): Promise<void> {
   const keywords = await getActiveKeywords()
 
-  // Run YouTube and Spotify scans in parallel — they are independent
-  const [youtubeResult, spotifyResult] = await Promise.all([
+  // Run YouTube, Spotify and SoundCloud scans in parallel — they are independent
+  const [youtubeResult, spotifyResult, soundcloudResult] = await Promise.all([
     runYouTubeScan(),
     (async () => {
       const logId = await createScanLog('spotify')
       try {
         const result = await scanSpotify(keywords)
+        await completeScanLog(logId, {
+          keywordsScanned: keywords.length,
+          leaksFound: result.leaksFound
+        })
+        return result
+      } catch (err) {
+        await completeScanLog(logId, { keywordsScanned: keywords.length, leaksFound: 0, error: String(err) })
+        return { leaksFound: 0, tracksScanned: 0, skipped: true, reason: String(err) }
+      }
+    })(),
+    (async () => {
+      const logId = await createScanLog('soundcloud')
+      try {
+        const result = await scanSoundCloud(keywords)
         await completeScanLog(logId, {
           keywordsScanned: keywords.length,
           leaksFound: result.leaksFound
@@ -87,10 +102,11 @@ export async function runFullScan(): Promise<void> {
     .order('detected_at', { ascending: false })
 
   await sendScanReport({
-    leaksFound: youtubeResult.leaksFound + spotifyResult.leaksFound,
+    leaksFound: youtubeResult.leaksFound + spotifyResult.leaksFound + soundcloudResult.leaksFound,
     youtubeKeywords: keywords.length,
     spotifyKeywords: keywords.length,
     spotifyTracksScanned: spotifyResult.tracksScanned,
+    soundcloudTracksScanned: soundcloudResult.tracksScanned,
     leaks: recentLeaks ?? []
   })
 }
