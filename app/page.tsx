@@ -71,23 +71,34 @@ function NextScanCountdown({ lastScan, onZero }: { lastScan: string | null, onZe
   }, [lastScan])
 
   useEffect(() => {
+    function getNextScheduledScan(): number {
+      // GitHub Actions cron: '0 */2 * * *' → runs at 00,02,04,...,22 UTC
+      const now = Date.now()
+      const ms2h = 2 * 3600 * 1000
+      const midnight = new Date()
+      midnight.setUTCHours(0, 0, 0, 0)
+      const sinceM = now - midnight.getTime()
+      // next 2h slot strictly in the future
+      const next2h = Math.ceil((sinceM + 1000) / ms2h) * ms2h
+      return midnight.getTime() + next2h
+    }
+
     function calc() {
       const now = Date.now()
-      const total = 2 * 3600 * 1000
-      // Próximo scan = último scan + 2h (o si no hay, siguiente hora par UTC)
+      const ms2h = 2 * 3600 * 1000
+
+      // nextScan = lastScan + 2h, but if that's already past → use next scheduled slot
       let nextScan: number
       if (lastScan) {
-        nextScan = new Date(lastScan).getTime() + total
+        const candidate = new Date(lastScan).getTime() + ms2h
+        nextScan = candidate > now ? candidate : getNextScheduledScan()
       } else {
-        const nowDate = new Date()
-        const h = nowDate.getUTCHours()
-        const nextH = Math.ceil((h + 1) / 2) * 2
-        nextScan = Date.UTC(nowDate.getUTCFullYear(), nowDate.getUTCMonth(), nowDate.getUTCDate(), nextH % 24)
-        if (nextScan <= now) nextScan += total
+        nextScan = getNextScheduledScan()
       }
+
       const rem = Math.max(0, nextScan - now)
-      const elapsed = total - rem
-      const pct = Math.min(100, Math.round((elapsed / total) * 100))
+      const elapsed = ms2h - rem
+      const pct = Math.min(100, Math.round((elapsed / ms2h) * 100))
       setT({
         h: Math.floor(rem / 3600000),
         m: Math.floor((rem % 3600000) / 60000),
