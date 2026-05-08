@@ -71,7 +71,7 @@ export default function KeywordsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Keywords</h1>
-          <p className="text-gray-500 text-sm mt-1">Términos de búsqueda para detectar filtraciones en YouTube</p>
+          <p className="text-gray-500 text-sm mt-1">Términos de búsqueda para detectar filtraciones en YouTube y Spotify</p>
         </div>
         <div className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-sm flex items-center gap-4">
           <div className="text-center">
@@ -81,7 +81,7 @@ export default function KeywordsPage() {
           <div className="h-8 w-px bg-white/5" />
           <div className="text-center">
             <div className="font-bold text-lg text-gray-400">{MAX_YOUTUBE}</div>
-            <div className="text-xs text-gray-600">límite YT</div>
+            <div className="text-xs text-gray-600">límite YouTube</div>
           </div>
           <div className="w-20">
             <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
@@ -157,6 +157,7 @@ export default function KeywordsPage() {
                   <div className="font-medium text-sm truncate">{kw.term}</div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/15 px-1.5 py-0.5 rounded font-medium">▶ YouTube</span>
+                    <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 border border-[#1DB954]/20 px-1.5 py-0.5 rounded font-medium">🎵 Spotify</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${kw.active ? 'text-[#F5C518] bg-[#F5C518]/10 border border-[#F5C518]/20' : 'text-gray-600 bg-white/3 border border-white/5'}`}>
                       {kw.active ? 'Activa' : 'Inactiva'}
                     </span>
@@ -179,7 +180,7 @@ export default function KeywordsPage() {
 
       {keywords.length > 0 && (
         <p className="text-xs text-gray-700 text-center">
-          Las keywords se aplican al próximo scan automático o cuando presionás &quot;Escanear ahora&quot; en el panel.
+          Las keywords se escanean en YouTube y Spotify en cada ciclo automático (cada 2h) o al presionar &quot;Escanear ahora&quot;.
         </p>
       )}
     </div>
