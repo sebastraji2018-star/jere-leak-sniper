@@ -94,6 +94,14 @@ export async function scanSpotify(keywords: string[]): Promise<{
         // Skip if Jere Klein is the primary artist (first artist) — that's official content
         if (artistIds[0] === JERE_KLEIN_ARTIST_ID) continue
 
+        // Only flag tracks that actually reference Jere Klein in title or artist name
+        // This prevents false positives from generic keywords like "medellin"
+        const titleLower = title.toLowerCase()
+        const artistLower = artistNames.toLowerCase()
+        const isJereRelated = titleLower.includes('jere') || titleLower.includes('klein') ||
+                              artistLower.includes('jere') || artistLower.includes('klein')
+        if (!isJereRelated) continue
+
         const { error: insertError } = await supabaseAdmin
           .from('detected_leaks')
           .insert({
