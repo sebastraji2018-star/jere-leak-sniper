@@ -1,5 +1,4 @@
 import { supabaseAdmin } from '../supabase'
-import { sendLeakNotification } from '../notifications/telegram'
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID!
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET!
@@ -117,18 +116,6 @@ export async function scanSpotify(keywords: string[]): Promise<{
         }
 
         leaksFound++
-        await sendLeakNotification({
-          title,
-          platform: 'spotify',
-          keyword_matched: keyword,
-          url,
-          published_at: releaseDate ? new Date(releaseDate).toISOString() : null
-        })
-        await supabaseAdmin
-          .from('detected_leaks')
-          .update({ notified: true })
-          .eq('platform', 'spotify')
-          .eq('content_id', trackId)
       }
     } catch (err) {
       console.error(`Spotify scan error for keyword "${keyword}":`, err)

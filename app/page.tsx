@@ -230,7 +230,7 @@ export default function Dashboard() {
                 {data.isActive ? 'Sistema activo' : 'Inactivo'}
               </div>
             </div>
-            <p className="text-gray-500 text-sm">Monitoreo automático de YouTube · cada 2 horas · alertas a Telegram</p>
+            <p className="text-gray-500 text-sm">Monitoreo automático de YouTube & Spotify · cada 2 horas · alertas a Telegram</p>
             {data.lastScan && (
               <p className="text-xs text-gray-700 mt-1.5" suppressHydrationWarning>
                 Último scan: {new Date(data.lastScan).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
@@ -258,7 +258,7 @@ export default function Dashboard() {
                 {scanning ? (
                   <>
                     <div className="w-4 h-4 border-2 border-[#F5C518] border-t-transparent rounded-full animate-spin" />
-                    <span>Escaneando YouTube...</span>
+                    <span>Escaneando...</span>
                   </>
                 ) : (
                   <>
@@ -412,7 +412,7 @@ export default function Dashboard() {
             </div>
             <div className="text-gray-500 font-medium text-sm">Sin filtraciones detectadas</div>
             <div className="text-gray-700 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
-              Cuando el sistema detecte un video con tus keywords, aparecerá aquí y recibirás el link en Telegram
+              Cuando el sistema detecte un video o track con tus keywords, aparecerá aquí y recibirás el link en Telegram
             </div>
           </div>
         ) : (
@@ -430,7 +430,12 @@ export default function Dashboard() {
               <tbody className="divide-y divide-white/3">
                 {data.leaks.map(leak => (
                   <tr key={leak.id} className="hover:bg-white/2 transition-colors">
-                    <td className="px-5 py-3.5 max-w-[200px]"><span className="font-medium text-sm truncate block">{leak.title}</span></td>
+                    <td className="px-5 py-3.5 max-w-[200px]">
+                      <div className="flex items-center gap-2">
+                        <span className="flex-shrink-0 text-base">{leak.platform === 'spotify' ? '🎵' : '▶️'}</span>
+                        <span className="font-medium text-sm truncate">{leak.title}</span>
+                      </div>
+                    </td>
                     <td className="px-5 py-3.5">
                       <span className="text-[#F5C518] text-xs bg-[#F5C518]/8 border border-[#F5C518]/20 px-2 py-0.5 rounded font-mono">{leak.keyword_matched}</span>
                     </td>
@@ -439,8 +444,10 @@ export default function Dashboard() {
                       {leak.published_at ? new Date(leak.published_at).toLocaleDateString('es-CL') : '—'}
                     </td>
                     <td className="px-5 py-3.5">
-                      <a href={leak.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-[#F5C518] hover:underline">
-                        Ver en YouTube ↗
+                      <a href={leak.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-medium hover:underline"
+                        style={{ color: leak.platform === 'spotify' ? '#1DB954' : '#F5C518' }}>
+                        {leak.platform === 'spotify' ? 'Ver en Spotify ↗' : 'Ver en YouTube ↗'}
                       </a>
                     </td>
                   </tr>
