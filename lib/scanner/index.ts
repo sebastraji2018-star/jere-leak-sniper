@@ -58,6 +58,25 @@ export async function runYouTubeScan(): Promise<{ leaksFound: number; unitsUsed:
 }
 
 export async function runFullScan(): Promise<void> {
+  // ── Deduplication guard ──────────────────────────────────────────────────
+  // Prevent duplicate scans when multiple cron systems fire close together.
+  // If any scan (any platform) started in the last 90 minutes, skip this run.
+  const { data: lastLog } = await supabaseAdmin
+    .from('scan_logs')
+    .select('started_at')
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (lastLog?.started_at) {
+    const minsSinceLast = (Date.now() - new Date(lastLog.started_at).getTime()) / 60000
+    if (minsSinceLast < 90) {
+      console.log(`[runFullScan] Skipped — last scan was ${Math.round(minsSinceLast)}m ago (< 90m threshold)`)
+      return
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const keywords = await getActiveKeywords()
 
   // Run YouTube, Spotify and SoundCloud scans in parallel — they are independent

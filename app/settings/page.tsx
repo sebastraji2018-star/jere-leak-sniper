@@ -98,6 +98,9 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+        <p className="text-xs text-gray-700">
+          Para cambiar estas configuraciones, actualizá las variables de entorno en Vercel.
+        </p>
         <button
           onClick={handleTestNotification}
           disabled={testStatus === 'sending'}

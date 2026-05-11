@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '../supabase'
 
-const CLIENT_ID = process.env.SOUNDCLOUD_CLIENT_ID!
-const CLIENT_SECRET = process.env.SOUNDCLOUD_CLIENT_SECRET!
+// SoundCloud API v2 — only needs client_id, no OAuth2 required for search
+const CLIENT_ID = process.env.SOUNDCLOUD_CLIENT_ID
 
 // Username patterns that belong to the official Jere Klein account — skip these
 const OFFICIAL_USERNAME_PATTERNS = ['jereklein', 'jere-klein', 'jere klein']
@@ -10,35 +10,12 @@ async function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-async function getSoundCloudToken(): Promise<string> {
-  const body = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET
-  })
-
-  const res = await fetch('https://api.soundcloud.com/oauth2/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  })
-
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(`SoundCloud token error: ${JSON.stringify(err)}`)
-  }
-
-  const data = await res.json()
-  return data.access_token as string
-}
-
 interface SoundCloudTrack {
   id: number
   title: string
   user: { id: number; username: string; permalink_url: string }
   permalink_url: string
   created_at: string
-  user_id: number
 }
 
 export async function scanSoundCloud(keywords: string[]): Promise<{
@@ -47,16 +24,8 @@ export async function scanSoundCloud(keywords: string[]): Promise<{
   skipped: boolean
   reason?: string
 }> {
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    return { leaksFound: 0, tracksScanned: 0, skipped: true, reason: 'Missing SoundCloud credentials' }
-  }
-
-  let token: string
-  try {
-    token = await getSoundCloudToken()
-  } catch (err) {
-    console.error('Failed to get SoundCloud token:', err)
-    return { leaksFound: 0, tracksScanned: 0, skipped: true, reason: String(err) }
+  if (!CLIENT_ID) {
+    return { leaksFound: 0, tracksScanned: 0, skipped: true, reason: 'Missing SOUNDCLOUD_CLIENT_ID' }
   }
 
   let leaksFound = 0
@@ -65,30 +34,37 @@ export async function scanSoundCloud(keywords: string[]): Promise<{
   for (const keyword of keywords) {
     await delay(400)
     try {
-      const params = new URLSearchParams({ q: keyword, limit: '50' })
-      const res = await fetch(`https://api.soundcloud.com/search/tracks?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      // API v2 — public search, no OAuth token needed, only client_id
+      const params = new URLSearchParams({
+        q: keyword,
+        client_id: CLIENT_ID,
+        limit: '50'
+      })
+
+      const res = await fetch(`https://api-v2.soundcloud.com/search/tracks?${params}`, {
+        headers: {
+          'Accept': 'application/json; charset=utf-8',
+          'User-Agent': 'Mozilla/5.0'
+        }
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        console.error(`SoundCloud search error for keyword "${keyword}":`, err)
+        const text = await res.text()
+        console.error(`SoundCloud search error for keyword "${keyword}": ${res.status} ${text}`)
         continue
       }
 
       const data = await res.json()
-      // SoundCloud search returns { collection: [...] }
       const tracks: SoundCloudTrack[] = data.collection ?? []
       tracksScanned += tracks.length
 
       for (const track of tracks) {
         const usernameLower = track.user?.username?.toLowerCase() ?? ''
-
-        // Skip if this looks like the official Jere Klein account
-        const isOfficial = OFFICIAL_USERNAME_PATTERNS.some(pattern => usernameLower.includes(pattern))
-        if (isOfficial) continue
-
         const titleLower = track.title?.toLowerCase() ?? ''
+
+        // Skip official Jere Klein account
+        const isOfficial = OFFICIAL_USERNAME_PATTERNS.some(p => usernameLower.includes(p))
+        if (isOfficial) continue
 
         // Only flag tracks that reference Jere/Klein in title or uploader username
         const isJereRelated =
@@ -113,7 +89,7 @@ export async function scanSoundCloud(keywords: string[]): Promise<{
             notified: false
           })
 
-        // Unique constraint (platform, content_id) returns 23505 for duplicates — skip silently
+        // 23505 = unique constraint violation (already detected) — skip silently
         if (insertError) {
           if (insertError.code !== '23505') {
             console.error(`Insert error for SoundCloud track ${contentId}:`, insertError)

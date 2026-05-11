@@ -126,6 +126,16 @@ export default function KeywordsPage() {
         </button>
       </form>
 
+      {/* Leyenda de plataformas — una sola vez, arriba de la lista */}
+      {!loading && keywords.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500">
+          <span className="text-gray-700">Cada keyword se escanea en:</span>
+          <span className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/15 px-2 py-0.5 rounded font-medium">▶ YouTube</span>
+          <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 border border-[#1DB954]/20 px-2 py-0.5 rounded font-medium">🎵 Spotify</span>
+          <span className="text-[10px] text-[#FF5500] bg-[#FF5500]/10 border border-[#FF5500]/20 px-2 py-0.5 rounded font-medium">🟠 SoundCloud</span>
+        </div>
+      )}
+
       {/* Keywords list */}
       <div className="space-y-2">
         {loading ? (
@@ -155,10 +165,7 @@ export default function KeywordsPage() {
                 </button>
                 <div className="min-w-0">
                   <div className="font-medium text-sm truncate">{kw.term}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/15 px-1.5 py-0.5 rounded font-medium">▶ YouTube</span>
-                    <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 border border-[#1DB954]/20 px-1.5 py-0.5 rounded font-medium">🎵 Spotify</span>
-                    <span className="text-[10px] text-[#FF5500] bg-[#FF5500]/10 border border-[#FF5500]/20 px-1.5 py-0.5 rounded font-medium">🟠 SoundCloud</span>
+                  <div className="mt-1">
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${kw.active ? 'text-[#F5C518] bg-[#F5C518]/10 border border-[#F5C518]/20' : 'text-gray-600 bg-white/3 border border-white/5'}`}>
                       {kw.active ? 'Activa' : 'Inactiva'}
                     </span>

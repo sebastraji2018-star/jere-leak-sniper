@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 
 interface Leak {
   id: string
@@ -60,9 +60,12 @@ function PlatformLink({ leak }: { leak: Leak }) {
   )
 }
 
+type PlatformFilter = 'all' | 'youtube' | 'spotify' | 'soundcloud'
+
 export default function LeaksPage() {
   const [leaks, setLeaks] = useState<Leak[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeFilter, setActiveFilter] = useState<PlatformFilter>('all')
 
   useEffect(() => {
     async function fetchLeaks() {
@@ -74,6 +77,23 @@ export default function LeaksPage() {
     }
     fetchLeaks()
   }, [])
+
+  const counts = useMemo(() => ({
+    all: leaks.length,
+    youtube: leaks.filter(l => l.platform === 'youtube').length,
+    spotify: leaks.filter(l => l.platform === 'spotify').length,
+    soundcloud: leaks.filter(l => l.platform === 'soundcloud').length,
+  }), [leaks])
+
+  const filteredLeaks = useMemo(() => {
+    if (activeFilter === 'all') return leaks
+    return leaks.filter(l => l.platform === activeFilter)
+  }, [leaks, activeFilter])
+
+  const activePlatforms = useMemo(() => {
+    const platforms = new Set(leaks.map(l => l.platform))
+    return platforms.size
+  }, [leaks])
 
   async function toggleManaged(leak: Leak) {
     const nextManaged = !leak.managed
@@ -97,20 +117,41 @@ export default function LeaksPage() {
         <div>
           <h1 className="text-2xl font-bold">Filtraciones detectadas</h1>
           <p className="text-gray-500 text-sm mt-1">
-            {loading ? 'Cargando...' : `${leaks.length} resultado${leaks.length !== 1 ? 's' : ''} en todas las plataformas`}
+            {loading
+              ? 'Cargando...'
+              : `${leaks.length} resultado${leaks.length !== 1 ? 's' : ''} en ${activePlatforms > 0 ? `${activePlatforms} plataforma${activePlatforms !== 1 ? 's' : ''}` : 'todas las plataformas'}`
+            }
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-600 bg-[#111111] border border-white/5 px-4 py-2 rounded-xl">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-          <span>▶ YouTube</span>
-          <span className="w-px h-3 bg-white/10 mx-0.5" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></span>
-          <span>🎵 Spotify</span>
-          <span className="w-px h-3 bg-white/10 mx-0.5" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF5500]"></span>
-          <span>🟠 SoundCloud</span>
-        </div>
       </div>
+
+      {/* Tabs de filtro por plataforma */}
+      {!loading && leaks.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {([
+            { key: 'all' as PlatformFilter, label: 'Todas', count: counts.all, icon: null },
+            { key: 'youtube' as PlatformFilter, label: 'YouTube', count: counts.youtube, icon: '▶' },
+            { key: 'spotify' as PlatformFilter, label: 'Spotify', count: counts.spotify, icon: '🎵' },
+            { key: 'soundcloud' as PlatformFilter, label: 'SoundCloud', count: counts.soundcloud, icon: '🟠' },
+          ]).map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFilter(tab.key)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 border ${
+                activeFilter === tab.key
+                  ? 'bg-[#F5C518]/10 border-[#F5C518]/30 text-[#F5C518]'
+                  : 'bg-transparent border-white/5 text-gray-500 hover:text-gray-300 hover:border-white/10'
+              }`}
+            >
+              {tab.icon && <span className="text-xs">{tab.icon}</span>}
+              <span>{tab.label}</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                activeFilter === tab.key ? 'bg-[#F5C518]/20 text-[#F5C518]' : 'bg-white/5 text-gray-600'
+              }`}>{tab.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
         {loading ? (
@@ -141,7 +182,7 @@ export default function LeaksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/3">
-                {leaks.map(leak => (
+                {filteredLeaks.map(leak => (
                   <tr
                     key={leak.id}
                     className={`hover:bg-white/2 transition-colors ${leak.managed ? 'opacity-50' : ''}`}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
+import NavLinks from './components/NavLinks'
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -36,18 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div className="text-[10px] text-[#F5C518] font-medium tracking-widest uppercase leading-none mt-0.5">Jere Klein</div>
               </div>
             </Link>
-            <div className="flex items-center gap-1">
-              {[
-                { href: '/', label: 'Panel' },
-                { href: '/leaks', label: 'Filtraciones' },
-                { href: '/keywords', label: 'Keywords' },
-                { href: '/settings', label: 'Ajustes' },
-              ].map(({ href, label }) => (
-                <Link key={href} href={href} className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-[#F5C518] hover:bg-[#F5C518]/5 transition-all duration-200">
-                  {label}
-                </Link>
-              ))}
-            </div>
+            <NavLinks />
           </div>
         </nav>
 

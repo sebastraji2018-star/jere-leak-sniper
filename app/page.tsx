@@ -211,30 +211,24 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 slide-in">
 
-      {/* HERO — Isotipo central + status + scan button */}
+      {/* HEADER — logo compacto + título + status + scan button */}
       <div className="relative overflow-hidden rounded-2xl border border-[#F5C518]/15 bg-[#0d0d0d]">
         <div className="h-px bg-gradient-to-r from-transparent via-[#F5C518]/25 to-transparent" />
-
-        <div className="relative px-8 py-10 flex flex-col items-center text-center gap-6">
-          {/* Isotipo 3D — mix-blend-mode en el padre elimina el fondo negro */}
-          <div style={{ perspective: '1000px', mixBlendMode: 'screen' }}>
+        <div className="px-6 py-5 flex flex-col sm:flex-row items-center gap-4">
+          {/* Logo pequeño */}
+          <div className="flex-shrink-0" style={{ mixBlendMode: 'screen' }}>
             <img
               src="/isotipo.png"
               alt="Jere Klein"
               className="spin-3d"
-              style={{
-                objectFit: 'contain',
-                width: 440,
-                height: 440,
-                display: 'block',
-              }}
+              style={{ objectFit: 'contain', width: 120, height: 120, display: 'block' }}
             />
           </div>
 
-          {/* Title */}
-          <div>
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold tracking-tight">Leak Sniper</h1>
+          {/* Título + status + último scan */}
+          <div className="flex-1 min-w-0 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start gap-3 mb-1">
+              <h1 className="text-2xl font-bold tracking-tight">Leak Sniper</h1>
               <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                 data.isActive ? 'border-[#F5C518]/30 text-[#F5C518] bg-[#F5C518]/8' : 'border-white/10 text-gray-500'
               }`}>
@@ -242,20 +236,20 @@ export default function Dashboard() {
                 {data.isActive ? 'Sistema activo' : 'Inactivo'}
               </div>
             </div>
-            <p className="text-gray-500 text-sm">Monitoreo automático de YouTube & Spotify · cada 2 horas · alertas a Telegram</p>
+            <p className="text-gray-500 text-sm">YouTube · Spotify · SoundCloud · cada 2 horas · alertas Telegram</p>
             {data.lastScan && (
-              <p className="text-xs text-gray-700 mt-1.5" suppressHydrationWarning>
+              <p className="text-xs text-gray-700 mt-1" suppressHydrationWarning>
                 Último scan: {new Date(data.lastScan).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
               </p>
             )}
           </div>
 
-          {/* Scan button */}
-          <div className="flex flex-col items-center gap-3">
+          {/* Scan button — anclado a la derecha */}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
             <button
               onClick={handleScan}
               disabled={scanning}
-              className={`relative overflow-hidden px-8 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              className={`relative overflow-hidden px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
                 scanning
                   ? 'bg-[#F5C518]/15 text-[#F5C518] border border-[#F5C518]/30 cursor-not-allowed'
                   : 'bg-[#F5C518] text-black hover:bg-[#FFD740] hover:scale-105 active:scale-95 shadow-lg shadow-[#F5C518]/20'
@@ -283,7 +277,7 @@ export default function Dashboard() {
               </div>
             </button>
             {scanMsg && (
-              <span className={`text-xs px-3 py-1.5 rounded-lg border ${
+              <span className={`text-xs px-3 py-1.5 rounded-lg border text-center max-w-[200px] ${
                 scanStatus === 'done' ? 'text-[#F5C518] bg-[#F5C518]/8 border-[#F5C518]/20' :
                 scanStatus === 'error' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
                 'text-gray-400 bg-white/5 border-white/8'
@@ -296,87 +290,59 @@ export default function Dashboard() {
         <div className="h-px bg-gradient-to-r from-transparent via-[#F5C518]/20 to-transparent" />
       </div>
 
-      {/* Artista protegido */}
-      <div className="flex items-center gap-5 bg-[#111111] border border-[#F5C518]/15 rounded-2xl px-6 py-4">
-        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#F5C518]/30 flex-shrink-0 bg-[#1a1a1a]">
-          <img src="/channels4_profile.jpg" alt="Jere Klein" style={{ width: 56, height: 56, objectFit: 'cover' }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-base">Jere Klein</span>
-            <span className="text-[10px] bg-[#F5C518]/10 text-[#F5C518] border border-[#F5C518]/20 px-2 py-0.5 rounded-full font-medium uppercase tracking-wider">Artista protegido</span>
-          </div>
-          <p className="text-xs text-gray-600 mt-0.5">Sistema activo · monitoreo 24/7 en YouTube · alertas instantáneas al equipo</p>
-        </div>
-        <div className="hidden sm:flex items-center gap-6 text-center flex-shrink-0">
-          <div>
-            <div className="text-lg font-bold text-[#F5C518]">{data.totalLeaks}</div>
-            <div className="text-[10px] text-gray-700 uppercase tracking-wider">filtraciones</div>
-          </div>
-          <div className="w-px h-8 bg-white/5" />
-          <div>
-            <div className="text-lg font-bold">{data.keywordCount}</div>
-            <div className="text-[10px] text-gray-700 uppercase tracking-wider">keywords</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Stats — fila 1: filtraciones + plataformas (3 cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#F5C518]/15 transition-colors group">
-          <div className="text-xs text-gray-600 mb-3 uppercase tracking-wider font-medium">Filtraciones detectadas</div>
+          <div className="text-xs text-gray-600 mb-3 uppercase tracking-wider font-medium">Filtraciones totales</div>
           <div className="flex items-end justify-between">
-            <div className="text-4xl font-bold text-[#F5C518] group-hover:text-[#FFD740] transition-colors">{data.totalLeaks}</div>
+            <div className="text-5xl font-bold text-[#F5C518] group-hover:text-[#FFD740] transition-colors">{data.totalLeaks}</div>
             {data.totalLeaks > 0 && <a href="/leaks" className="text-xs text-gray-600 hover:text-[#F5C518] transition-colors pb-1">Ver todas →</a>}
           </div>
           <div className="text-xs text-gray-700 mt-2">desde la activación</div>
         </div>
 
-        {/* Spotify card */}
+        {/* Spotify */}
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#1DB954]/20 transition-colors group">
           <div className="flex items-center gap-2 mb-3">
             <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 flex-shrink-0" fill="#1DB954">
               <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
             </svg>
-            <div className="text-xs text-gray-600 uppercase tracking-wider font-medium">Spotify monitoreado</div>
+            <div className="text-xs text-gray-600 uppercase tracking-wider font-medium">Spotify</div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="text-4xl font-bold group-hover:transition-colors" style={{ color: data.spotifyLeaks > 0 ? '#1DB954' : undefined }}>
-              {data.spotifyLeaks}
-            </div>
-            <span className="text-lg pb-1">🎵</span>
+          <div className="text-5xl font-bold" style={{ color: data.spotifyLeaks > 0 ? '#1DB954' : undefined }}>
+            {data.spotifyLeaks}
           </div>
-          <div className="text-xs text-gray-700 mt-2">tracks sospechosos detectados</div>
+          <div className="text-xs text-gray-700 mt-2">tracks sospechosos</div>
         </div>
 
-        {/* SoundCloud card */}
+        {/* SoundCloud */}
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#FF5500]/20 transition-colors group">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[#FF5500] text-sm">🟠</span>
-            <div className="text-xs text-gray-600 uppercase tracking-wider font-medium">SoundCloud monitoreado</div>
+            <span className="text-[#FF5500] text-sm leading-none">●</span>
+            <div className="text-xs text-gray-600 uppercase tracking-wider font-medium">SoundCloud</div>
           </div>
-          <div className="flex items-end justify-between">
-            <div className="text-4xl font-bold group-hover:transition-colors" style={{ color: data.soundcloudLeaks > 0 ? '#FF5500' : undefined }}>
-              {data.soundcloudLeaks}
-            </div>
-            <span className="text-lg pb-1">🟠</span>
+          <div className="text-5xl font-bold" style={{ color: data.soundcloudLeaks > 0 ? '#FF5500' : undefined }}>
+            {data.soundcloudLeaks}
           </div>
-          <div className="text-xs text-gray-700 mt-2">tracks sospechosos detectados</div>
+          <div className="text-xs text-gray-700 mt-2">tracks sospechosos</div>
         </div>
+      </div>
 
+      {/* Stats — fila 2: keywords + countdown (2 cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[#111111] border border-white/5 rounded-2xl p-5 hover:border-[#F5C518]/15 transition-colors group">
           <div className="text-xs text-gray-600 mb-3 uppercase tracking-wider font-medium">Keywords activas</div>
           <div className="flex items-end justify-between">
-            <div className="text-4xl font-bold group-hover:text-[#F5C518] transition-colors">{data.keywordCount}</div>
+            <div className="text-5xl font-bold group-hover:text-[#F5C518] transition-colors">{data.keywordCount}</div>
             <a href="/keywords" className="text-xs text-gray-600 hover:text-[#F5C518] transition-colors pb-1">Gestionar →</a>
           </div>
-          <div className="mt-2">
+          <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-700 mb-1.5">
               <span>Límite YouTube</span>
               <span>{data.keywordCount}/8</span>
             </div>
-            <div className="w-full bg-white/5 rounded-full h-1">
-              <div className="h-1 rounded-full transition-all duration-500" style={{
+            <div className="w-full bg-white/5 rounded-full h-1.5">
+              <div className="h-1.5 rounded-full transition-all duration-500" style={{
                 width: `${Math.min(100, (data.keywordCount / 8) * 100)}%`,
                 backgroundColor: data.keywordCount >= 8 ? '#ef4444' : data.keywordCount >= 6 ? '#f59e0b' : '#F5C518'
               }} />
@@ -402,22 +368,27 @@ export default function Dashboard() {
           <div className="divide-y divide-white/3">
             {data.scanHistory.map((log) => (
               <div key={log.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/2 transition-colors">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${log.status === 'completed' ? 'bg-[#F5C518]' : log.status === 'error' ? 'bg-red-500' : 'bg-yellow-400 animate-pulse'}`} />
-                  <span className="text-xs text-gray-500" suppressHydrationWarning>
+                  <span className="text-xs text-gray-400 tabular-nums whitespace-nowrap" suppressHydrationWarning>
                     {new Date(log.started_at).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  <span className="text-xs text-gray-700">{log.keywords_scanned} keywords</span>
+                  <span className="text-xs text-gray-600 hidden sm:inline">{log.keywords_scanned} keywords</span>
+                  {log.platform && (
+                    <span className="text-[10px] text-gray-700 bg-white/3 border border-white/5 px-1.5 py-0.5 rounded hidden sm:inline capitalize">
+                      {log.platform}
+                    </span>
+                  )}
                 </div>
-                <div>
+                <div className="flex-shrink-0 ml-3">
                   {log.leaks_found > 0 ? (
-                    <span className="text-xs font-medium text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
-                      {log.leaks_found} filtración{log.leaks_found > 1 ? 'es' : ''}
+                    <span className="text-xs font-semibold text-red-400 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                      {log.leaks_found} {log.leaks_found > 1 ? 'filtraciones' : 'filtración'}
                     </span>
                   ) : log.status === 'error' ? (
-                    <span className="text-xs text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">Error</span>
+                    <span className="text-xs text-red-500 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">Error</span>
                   ) : (
-                    <span className="text-xs text-gray-700 bg-white/3 px-2.5 py-1 rounded-full">Sin novedades</span>
+                    <span className="text-xs text-gray-600 bg-white/3 px-3 py-1 rounded-full">Sin novedades</span>
                   )}
                 </div>
               </div>
@@ -457,16 +428,18 @@ export default function Dashboard() {
               <tbody className="divide-y divide-white/3">
                 {data.leaks.map(leak => (
                   <tr key={leak.id} className="hover:bg-white/2 transition-colors">
-                    <td className="px-5 py-3.5 max-w-[200px]">
+                    <td className="px-5 py-3.5 max-w-[240px]">
                       <div className="flex items-center gap-2">
                         <span className="flex-shrink-0 text-base">{leak.platform === 'spotify' ? '🎵' : leak.platform === 'soundcloud' ? '🟠' : '▶️'}</span>
-                        <span className="font-medium text-sm truncate">{leak.title}</span>
+                        <span className="font-medium text-sm truncate block max-w-[200px]">{leak.title}</span>
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="text-[#F5C518] text-xs bg-[#F5C518]/8 border border-[#F5C518]/20 px-2 py-0.5 rounded font-mono">{leak.keyword_matched}</span>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-500 text-xs max-w-[140px] truncate">{leak.channel_or_artist ?? '—'}</td>
+                    <td className="px-5 py-3.5 text-gray-500 text-xs max-w-[120px]">
+                      <span className="truncate block">{leak.channel_or_artist ?? '—'}</span>
+                    </td>
                     <td className="px-5 py-3.5 text-gray-500 text-xs whitespace-nowrap" suppressHydrationWarning>
                       {leak.published_at ? new Date(leak.published_at).toLocaleDateString('es-CL') : '—'}
                     </td>
