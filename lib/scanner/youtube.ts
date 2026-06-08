@@ -1,107 +1,96 @@
-import { supabaseAdmin } from '../supabase'
-import { canRunYouTubeScan, addQuotaUsed } from '../quota'
+// Cliente mínimo de YouTube Data API v3 (search.list).
+// Cada búsqueda cuesta 100 unidades de cuota. Todo envuelto: nunca lanza.
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY!
-const MAX_KEYWORDS = 8
-
-async function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+export interface YoutubeItem {
+  external_id: string; // videoId
+  url: string;
+  title: string;
+  channel: string;
+  channel_id: string; // channelId (para excluir canales oficiales)
+  thumbnail_url: string;
+  published_at: string | null;
 }
 
-async function getMonitoringStartDate(): Promise<string> {
-  const { data } = await supabaseAdmin
-    .from('system_config')
-    .select('value')
-    .eq('key', 'monitoring_start_date')
-    .single()
-  return data?.value ?? new Date().toISOString()
+export interface YoutubeSearchResult {
+  ok: boolean;
+  items: YoutubeItem[];
+  error?: string;
+  quotaExceeded?: boolean;
 }
 
-async function getOfficialChannels(): Promise<string[]> {
-  const { data } = await supabaseAdmin
-    .from('official_accounts')
-    .select('account_id')
-    .eq('platform', 'youtube')
-  return data?.map(r => r.account_id) ?? []
+interface RawSearchItem {
+  id?: { videoId?: string };
+  snippet?: {
+    title?: string;
+    channelTitle?: string;
+    channelId?: string;
+    publishedAt?: string;
+    thumbnails?: { medium?: { url?: string }; default?: { url?: string } };
+  };
 }
 
-export async function scanYouTube(keywords: string[]): Promise<{
-  leaksFound: number
-  unitsUsed: number
-  skipped: boolean
-  reason?: string
-}> {
-  const activeKeywords = keywords.slice(0, MAX_KEYWORDS)
+export async function youtubeSearch(
+  apiKey: string,
+  term: string,
+  publishedAfter: string | null,
+  maxResults = 10
+): Promise<YoutubeSearchResult> {
+  try {
+    const params = new URLSearchParams({
+      key: apiKey,
+      part: "snippet",
+      q: term,
+      type: "video",
+      order: "date",
+      maxResults: String(maxResults),
+    });
+    if (publishedAfter) params.set("publishedAfter", publishedAfter);
 
-  const canRun = await canRunYouTubeScan(activeKeywords.length)
-  if (!canRun) {
-    return { leaksFound: 0, unitsUsed: 0, skipped: true, reason: 'Cuota diaria insuficiente' }
-  }
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
+      { cache: "no-store" }
+    );
 
-  const startDate = await getMonitoringStartDate()
-  const officialChannels = await getOfficialChannels()
-  let leaksFound = 0
-  let unitsUsed = 0
-
-  for (const keyword of activeKeywords) {
-    await delay(500)
-    try {
-      const params = new URLSearchParams({
-        q: keyword,
-        part: 'snippet',
-        type: 'video',
-        order: 'date',
-        publishedAfter: new Date(startDate).toISOString(),
-        maxResults: '25',
-        key: YOUTUBE_API_KEY
-      })
-
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`)
-      await addQuotaUsed(100)
-      unitsUsed += 100
-
-      if (!res.ok) {
-        const err = await res.json()
-        console.error('YouTube API error:', err)
-        continue
-      }
-
-      const data = await res.json()
-      const items = data.items ?? []
-
-      for (const item of items) {
-        const channelId = item.snippet?.channelId
-        const videoId = item.id?.videoId
-        const title = item.snippet?.title ?? ''
-        const publishedAt = item.snippet?.publishedAt
-
-        if (!videoId) continue
-        if (officialChannels.includes(channelId)) continue
-        if (!title.toLowerCase().includes(keyword.toLowerCase())) continue
-        if (publishedAt && new Date(publishedAt) < new Date(startDate)) continue
-
-        const { error: insertError } = await supabaseAdmin
-          .from('detected_leaks')
-          .insert({
-            platform: 'youtube',
-            content_id: videoId,
-            title,
-            url: `https://www.youtube.com/watch?v=${videoId}`,
-            channel_or_artist: item.snippet?.channelTitle,
-            keyword_matched: keyword,
-            published_at: publishedAt,
-            notified: false
-          })
-          .select()
-
-        if (!insertError) {
-          leaksFound++
+    if (!res.ok) {
+      let message = `YouTube API HTTP ${res.status}`;
+      let quotaExceeded = false;
+      try {
+        const body = await res.json();
+        message = body?.error?.message || message;
+        const reason = body?.error?.errors?.[0]?.reason;
+        if (reason === "quotaExceeded" || reason === "dailyLimitExceeded") {
+          quotaExceeded = true;
         }
+      } catch {
+        // respuesta no-JSON
       }
-    } catch (err) {
-      console.error(`YouTube scan error for keyword "${keyword}":`, err)
+      return { ok: false, items: [], error: message, quotaExceeded };
     }
-  }
 
-  return { leaksFound, unitsUsed, skipped: false }
+    const data = (await res.json()) as { items?: RawSearchItem[] };
+    const items: YoutubeItem[] = (data.items || [])
+      .filter((it) => it.id?.videoId)
+      .map((it) => {
+        const videoId = it.id!.videoId!;
+        const sn = it.snippet || {};
+        return {
+          external_id: videoId,
+          url: `https://www.youtube.com/watch?v=${videoId}`,
+          title: sn.title || "(sin título)",
+          channel: sn.channelTitle || "(canal desconocido)",
+          channel_id: sn.channelId || "",
+          thumbnail_url:
+            sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || "",
+          published_at: sn.publishedAt || null,
+        };
+      });
+
+    return { ok: true, items };
+  } catch (err) {
+    return {
+      ok: false,
+      items: [],
+      error: err instanceof Error ? err.message : "Error de red al consultar YouTube",
+    };
+  }
 }

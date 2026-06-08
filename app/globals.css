@@ -2,60 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    background-color: #0a0a0a;
-    color: white;
-    font-family: var(--font-inter), sans-serif;
-  }
+:root {
+  --background: #080807;
+  --foreground: #ededec;
 }
 
-@layer utilities {
-  .glow-gold {
-    box-shadow: 0 0 20px rgba(245, 197, 24, 0.15);
-  }
-  .glow-gold-strong {
-    box-shadow: 0 0 30px rgba(245, 197, 24, 0.3);
-  }
-  @keyframes scanPulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245, 197, 24, 0.4); }
-    50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(245, 197, 24, 0); }
-  }
-  .scan-pulse { animation: scanPulse 2s ease-in-out infinite; }
-  @keyframes slideInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .slide-in { animation: slideInUp 0.4s ease-out; }
-  @keyframes scanLine {
-    0% { transform: translateY(-100%); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateY(100%); opacity: 0; }
-  }
-  .scan-line { animation: scanLine 2s ease-in-out infinite; }
-  @keyframes goldShimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  .gold-shimmer {
-    background: linear-gradient(90deg, #F5C518, #FFE066, #E8A000, #F5C518);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: goldShimmer 3s linear infinite;
-  }
+* {
+  box-sizing: border-box;
+}
 
-  /* 3D rotation — perspective en el padre, sin will-change para que mix-blend-mode funcione */
-  @keyframes spin3d {
-    0%   { transform: rotateY(0deg); }
-    100% { transform: rotateY(360deg); }
-  }
-  .spin-3d {
-    animation: spin3d 10s linear infinite;
-    /* mix-blend-mode va en el padre, no aquí, para evitar conflicto con la capa GPU del transform */
-  }
-  .spin-3d:hover {
-    animation-play-state: paused;
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Fondo con textura sutil de "panel de inteligencia" */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(245, 181, 0, 0.06), transparent 60%),
+    radial-gradient(700px 400px at -10% 0%, rgba(245, 181, 0, 0.04), transparent 55%);
+}
+
+/* Grilla tenue */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0c0b;
+}
+::-webkit-scrollbar-thumb {
+  background: #262624;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #34332f;
+}
+
+/* Animaciones utilitarias */
+@keyframes ls-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: ls-fade-in 0.35s ease both;
+}
+
+@keyframes ls-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.85); }
+}
+.pulse-dot {
+  animation: ls-pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes ls-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #141413 25%, #1c1c1a 50%, #141413 75%);
+  background-size: 800px 100%;
+  animation: ls-shimmer 1.4s linear infinite;
+  border-radius: 6px;
+}
+
+@keyframes ls-toast-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.animate-toast-in {
+  animation: ls-toast-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }
