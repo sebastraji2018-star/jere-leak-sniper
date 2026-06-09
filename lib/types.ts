@@ -72,6 +72,9 @@ export interface Settings {
   unit_cost_per_search: number;
   alert_threshold_views: number;
   client_name: string;
+  brand_name: string;
+  accent_color: string;
+  login_tagline: string;
   youtube_api_key: string | null;
   spotify_client_id: string | null;
   spotify_client_secret: string | null;
@@ -86,6 +89,9 @@ export const DEFAULT_SETTINGS: Settings = {
   unit_cost_per_search: 100,
   alert_threshold_views: 1000,
   client_name: "The Orchard",
+  brand_name: "Leak Sniper",
+  accent_color: "#F5B500",
+  login_tagline: "Inteligencia de filtraciones musicales.",
   youtube_api_key: null,
   spotify_client_id: null,
   spotify_client_secret: null,

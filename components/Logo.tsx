@@ -1,9 +1,11 @@
 export function Logo({
   size = "md",
   client = "THE ORCHARD",
+  brandName = "Leak Sniper",
 }: {
   size?: "sm" | "md" | "lg";
   client?: string;
+  brandName?: string;
 }) {
   const scale =
     size === "lg"
@@ -12,6 +14,11 @@ export function Logo({
       ? "text-base"
       : "text-xl";
   const sub = size === "lg" ? "text-[11px]" : "text-[9px]";
+
+  // Marca: primera palabra en blanco, el resto en color de acento.
+  const parts = brandName.trim().split(/\s+/);
+  const first = parts.length > 1 ? parts.slice(0, -1).join(" ") : brandName;
+  const accent = parts.length > 1 ? parts[parts.length - 1] : "";
 
   return (
     <div className="flex items-center gap-3 select-none">
@@ -25,7 +32,8 @@ export function Logo({
       </span>
       <div className="leading-none">
         <div className={`font-display font-extrabold tracking-tight ${scale}`}>
-          Leak<span className="text-gold">Sniper</span>
+          {first}
+          {accent && <span className="text-gold">{accent}</span>}
         </div>
         <div className={`font-mono uppercase tracking-[0.32em] text-white/40 ${sub} mt-1`}>
           {client}

@@ -259,6 +259,9 @@ export async function updateSettings(input: {
   unit_cost_per_search?: number;
   alert_threshold_views?: number;
   client_name?: string;
+  brand_name?: string;
+  accent_color?: string;
+  login_tagline?: string;
   youtube_api_key?: string | null;
   spotify_client_id?: string | null;
   spotify_client_secret?: string | null;
@@ -281,6 +284,16 @@ export async function updateSettings(input: {
     }
     if (input.client_name !== undefined)
       patch.client_name = input.client_name.trim() || "The Orchard";
+    if (input.brand_name !== undefined)
+      patch.brand_name = input.brand_name.trim() || "Leak Sniper";
+    if (input.login_tagline !== undefined)
+      patch.login_tagline = input.login_tagline.trim() || "Inteligencia de filtraciones musicales.";
+    if (input.accent_color !== undefined) {
+      const c = input.accent_color.trim();
+      patch.accent_color = /^#?[0-9a-fA-F]{6}$/.test(c)
+        ? c.startsWith("#") ? c : `#${c}`
+        : "#F5B500";
+    }
 
     // Credenciales: solo se actualizan si vienen con valor (no se pisan con vacío)
     if (input.youtube_api_key !== undefined)

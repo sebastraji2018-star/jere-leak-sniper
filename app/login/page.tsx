@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
+import { accentCss } from "@/lib/branding";
+import { DEFAULT_SETTINGS } from "@/lib/types";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +14,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [brand, setBrand] = useState({
+    brand_name: DEFAULT_SETTINGS.brand_name,
+    client_name: DEFAULT_SETTINGS.client_name,
+    accent_color: DEFAULT_SETTINGS.accent_color,
+    login_tagline: DEFAULT_SETTINGS.login_tagline,
+  });
+
+  // Branding white-label (público) para la pantalla de login
+  useEffect(() => {
+    fetch("/api/branding", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => d && setBrand((b) => ({ ...b, ...d })))
+      .catch(() => {});
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -52,16 +68,15 @@ export default function LoginPage() {
 
   return (
     <main className="grid-bg relative z-10 flex min-h-screen items-center justify-center px-4">
+      <style dangerouslySetInnerHTML={{ __html: accentCss(brand.accent_color) }} />
       <div className="w-full max-w-sm animate-fade-in">
         <div className="mb-8 flex justify-center">
-          <Logo size="lg" />
+          <Logo size="lg" client={brand.client_name} brandName={brand.brand_name} />
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-ink-900/80 p-7 backdrop-blur">
           <h1 className="font-display text-lg font-bold">Acceso al panel</h1>
-          <p className="mt-1 text-sm text-white/45">
-            Inteligencia de filtraciones musicales.
-          </p>
+          <p className="mt-1 text-sm text-white/45">{brand.login_tagline}</p>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div>
@@ -113,7 +128,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-5 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-white/25">
-          Leak Sniper · White-label
+          {brand.brand_name} · White-label
         </p>
       </div>
     </main>

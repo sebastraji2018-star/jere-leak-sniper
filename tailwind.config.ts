@@ -20,13 +20,15 @@ const config: Config = {
           600: "#262624",
           500: "#34332f",
         },
+        // Color de acento configurable (white-label) vía variables CSS.
+        // Canales RGB para preservar los modificadores de opacidad (gold/40, etc.)
         gold: {
-          DEFAULT: "#F5B500",
-          300: "#FFD24D",
-          400: "#FAC520",
-          500: "#F5B500",
-          600: "#C99500",
-          glow: "rgba(245,181,0,0.16)",
+          DEFAULT: "rgb(var(--gold-500) / <alpha-value>)",
+          300: "rgb(var(--gold-300) / <alpha-value>)",
+          400: "rgb(var(--gold-400) / <alpha-value>)",
+          500: "rgb(var(--gold-500) / <alpha-value>)",
+          600: "rgb(var(--gold-600) / <alpha-value>)",
+          glow: "rgb(var(--gold-500) / 0.16)",
         },
         risk: {
           alto: "#ff5d5d",
@@ -40,7 +42,7 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
-        gold: "0 0 0 1px rgba(245,181,0,0.25), 0 0 24px rgba(245,181,0,0.10)",
+        gold: "0 0 0 1px rgb(var(--gold-500) / 0.25), 0 0 24px rgb(var(--gold-500) / 0.10)",
       },
     },
   },

@@ -24,6 +24,9 @@ export default async function AjustesPage() {
   // Nunca exponemos las credenciales al cliente: solo si están configuradas.
   const formData: SettingsFormData = {
     client_name: settings.client_name,
+    brand_name: settings.brand_name,
+    accent_color: settings.accent_color,
+    login_tagline: settings.login_tagline,
     scan_interval_hours: settings.scan_interval_hours,
     daily_quota_limit: settings.daily_quota_limit,
     unit_cost_per_search: settings.unit_cost_per_search,

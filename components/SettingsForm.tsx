@@ -6,6 +6,9 @@ import { updateSettings } from "@/app/actions";
 
 export interface SettingsFormData {
   client_name: string;
+  brand_name: string;
+  accent_color: string;
+  login_tagline: string;
   scan_interval_hours: number;
   daily_quota_limit: number;
   unit_cost_per_search: number;
@@ -19,6 +22,9 @@ export function SettingsForm({ initial }: { initial: SettingsFormData }) {
   const router = useRouter();
   const [form, setForm] = useState({
     client_name: initial.client_name,
+    brand_name: initial.brand_name,
+    accent_color: initial.accent_color,
+    login_tagline: initial.login_tagline,
     scan_interval_hours: String(initial.scan_interval_hours),
     daily_quota_limit: String(initial.daily_quota_limit),
     unit_cost_per_search: String(initial.unit_cost_per_search),
@@ -41,6 +47,9 @@ export function SettingsForm({ initial }: { initial: SettingsFormData }) {
     // Solo enviamos credenciales si el usuario escribió algo (no las pisamos vacías)
     const payload: Parameters<typeof updateSettings>[0] = {
       client_name: form.client_name,
+      brand_name: form.brand_name,
+      accent_color: form.accent_color,
+      login_tagline: form.login_tagline,
       scan_interval_hours: Number(form.scan_interval_hours),
       daily_quota_limit: Number(form.daily_quota_limit),
       unit_cost_per_search: Number(form.unit_cost_per_search),
@@ -70,16 +79,57 @@ export function SettingsForm({ initial }: { initial: SettingsFormData }) {
 
   return (
     <div className="space-y-6">
-      {/* General */}
-      <Section title="General" desc="Identidad del panel y ritmo de escaneo.">
-        <Field label="Nombre del cliente (white-label)">
+      {/* Marca / White-label */}
+      <Section
+        title="Marca / White-label"
+        desc="Personaliza el panel para cualquier cliente. Los cambios aplican al instante (logo, color, textos, login)."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Nombre de la marca (producto)">
+            <input
+              value={form.brand_name}
+              onChange={(e) => set("brand_name", e.target.value)}
+              className={inputCls}
+              placeholder="Leak Sniper"
+            />
+          </Field>
+          <Field label="Nombre del cliente (sublínea)">
+            <input
+              value={form.client_name}
+              onChange={(e) => set("client_name", e.target.value)}
+              className={inputCls}
+              placeholder="The Orchard"
+            />
+          </Field>
+        </div>
+        <Field label="Subtítulo del login">
           <input
-            value={form.client_name}
-            onChange={(e) => set("client_name", e.target.value)}
+            value={form.login_tagline}
+            onChange={(e) => set("login_tagline", e.target.value)}
             className={inputCls}
-            placeholder="The Orchard"
+            placeholder="Inteligencia de filtraciones musicales."
           />
         </Field>
+        <Field label="Color de acento">
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={form.accent_color}
+              onChange={(e) => set("accent_color", e.target.value)}
+              className="h-10 w-14 shrink-0 cursor-pointer rounded-lg border border-white/10 bg-ink-900 p-1"
+            />
+            <input
+              value={form.accent_color}
+              onChange={(e) => set("accent_color", e.target.value)}
+              className={inputCls}
+              placeholder="#F5B500"
+            />
+          </div>
+        </Field>
+      </Section>
+
+      {/* General */}
+      <Section title="General" desc="Ritmo de escaneo y alertas.">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Intervalo de escaneo (horas)">
             <input

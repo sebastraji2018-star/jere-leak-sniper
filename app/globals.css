@@ -5,6 +5,11 @@
 :root {
   --background: #080807;
   --foreground: #ededec;
+  /* Acento white-label (canales RGB). Se sobre-escribe desde Ajustes. */
+  --gold-300: 255 210 77;
+  --gold-400: 250 197 32;
+  --gold-500: 245 181 0;
+  --gold-600: 201 149 0;
 }
 
 * {
@@ -32,8 +37,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(900px 500px at 85% -10%, rgba(245, 181, 0, 0.06), transparent 60%),
-    radial-gradient(700px 400px at -10% 0%, rgba(245, 181, 0, 0.04), transparent 55%);
+    radial-gradient(900px 500px at 85% -10%, rgb(var(--gold-500) / 0.06), transparent 60%),
+    radial-gradient(700px 400px at -10% 0%, rgb(var(--gold-500) / 0.04), transparent 55%);
 }
 
 /* Grilla tenue */

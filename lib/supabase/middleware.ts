@@ -37,7 +37,8 @@ export async function updateSession(request: NextRequest) {
   const isPublic =
     path.startsWith("/login") ||
     path.startsWith("/api/scan") ||
-    path.startsWith("/api/health");
+    path.startsWith("/api/health") ||
+    path.startsWith("/api/branding");
 
   // Sin sesión y ruta protegida -> a /login
   if (!user && !isPublic) {

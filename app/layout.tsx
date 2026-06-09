@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { createAdminClient } from "@/lib/supabase/server";
+import { DEFAULT_SETTINGS } from "@/lib/types";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -22,11 +24,27 @@ const mono = IBM_Plex_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Leak Sniper — The Orchard",
-  description:
-    "Detección de filtraciones musicales no lanzadas. Panel de inteligencia white-label para The Orchard.",
-};
+// Título/descn dinámicos (white-label) desde la configuración
+export async function generateMetadata(): Promise<Metadata> {
+  let brand = DEFAULT_SETTINGS.brand_name;
+  let client = DEFAULT_SETTINGS.client_name;
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("settings")
+      .select("brand_name, client_name")
+      .eq("id", 1)
+      .maybeSingle();
+    if (data?.brand_name) brand = data.brand_name;
+    if (data?.client_name) client = data.client_name;
+  } catch {
+    /* fallback */
+  }
+  return {
+    title: `${brand} — ${client}`,
+    description: `Detección de filtraciones musicales no lanzadas. Panel de inteligencia white-label para ${client}.`,
+  };
+}
 
 export default function RootLayout({
   children,

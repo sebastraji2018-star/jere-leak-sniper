@@ -17,7 +17,13 @@ function timeAgo(iso: string): string {
   return `hace ${Math.floor(h / 24)}d`;
 }
 
-export function NavBar({ clientName }: { clientName: string }) {
+export function NavBar({
+  clientName,
+  brandName,
+}: {
+  clientName: string;
+  brandName: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { items, count, markReviewed, markAllReviewed, refresh } = useNotifications();
@@ -69,7 +75,7 @@ export function NavBar({ clientName }: { clientName: string }) {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="shrink-0">
-          <Logo size="md" client={clientName} />
+          <Logo size="md" client={clientName} brandName={brandName} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
