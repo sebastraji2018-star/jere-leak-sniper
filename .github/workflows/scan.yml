@@ -1,18 +1,31 @@
-name: Jere Klein Leak Scanner
+name: Escaneo Leak Sniper (cron horario)
+
+# Corre el escaneo cada hora (gratis, vía GitHub Actions) llamando a /api/scan
+# con el header CRON_SECRET. Bypassa el límite de cron diario del plan Vercel Hobby.
+#
+# REQUISITO: agregar el secreto en GitHub → Settings → Secrets and variables →
+# Actions → New repository secret:
+#   Name:  CRON_SECRET
+#   Value: (el mismo CRON_SECRET que está en Vercel)
+#
+# Para PROBARLO al instante: pestaña Actions → este workflow → "Run workflow".
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # cada 2 horas (cambia a '0 * * * *' para cada 1 hora)
-  workflow_dispatch:         # permite ejecutar manualmente desde GitHub
+    - cron: "0 * * * *" # cada hora (UTC)
+  workflow_dispatch: {} # permite correrlo manualmente para probar
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger scan
+      - name: Disparar escaneo
         run: |
-          curl -X GET \
+          echo "Llamando a /api/scan..."
+          HTTP=$(curl -s -X POST "https://jere-leak-sniper.vercel.app/api/scan" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            --max-time 60 \
-            --fail \
-            https://jere-sniper.vercel.app/api/cron
+            -H "Content-Type: application/json" \
+            --max-time 120 -w "%{http_code}" -o /tmp/resp.json)
+          echo "HTTP $HTTP"
+          cat /tmp/resp.json
+          if [ "$HTTP" != "200" ]; then echo "::error::Escaneo falló (HTTP $HTTP)"; exit 1; fi
