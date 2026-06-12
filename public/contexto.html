@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leak Sniper — Contexto del proyecto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#080807; --gold:#F5B500; --gold-300:#FFD24D; --ink-900:#0c0c0b; --ink-800:#141413; --ink-700:#1c1c1a; --line:rgba(255,255,255,.10); --tx:#ededec; --mut:rgba(255,255,255,.5); }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(900px 500px at 85% -10%,rgba(245,181,0,.07),transparent 60%),radial-gradient(700px 400px at -10% 0%,rgba(245,181,0,.04),transparent 55%)}
+  .wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 22px 80px}
+  header{padding:54px 0 30px;text-align:center}
+  .logo{display:inline-flex;align-items:center;gap:12px}
+  .scope{width:42px;height:42px;border:1px solid rgba(245,181,0,.4);border-radius:11px;background:var(--ink-900);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(245,181,0,.25),0 0 24px rgba(245,181,0,.10)}
+  .brand{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.5px}
+  .brand span{color:var(--gold)}
+  .sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.32em;color:var(--mut);text-transform:uppercase;margin-top:4px}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;line-height:1.15;margin:26px 0 10px;text-align:center}
+  .lead{color:var(--mut);text-align:center;max-width:620px;margin:0 auto;font-size:17px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:34px 0}
+  .kpi{background:rgba(20,20,19,.6);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+  .kpi b{font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--gold);display:block}
+  .kpi small{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  section{background:rgba(12,12,11,.6);border:1px solid var(--line);border-radius:18px;padding:24px 26px;margin:18px 0}
+  h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .n{font-family:'IBM Plex Mono',monospace;color:var(--gold);font-size:14px}
+  .muted{color:var(--mut);margin-top:0}
+  ul{padding-left:0;list-style:none;margin:14px 0 0}
+  li{padding:7px 0 7px 26px;position:relative;border-bottom:1px solid rgba(255,255,255,.04)}
+  li:last-child{border-bottom:0}
+  li::before{content:"";position:absolute;left:6px;top:15px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+  li.ok::before{background:#5dd6a0}
+  li.warn::before{background:var(--gold)}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+  td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{color:var(--gold-300);font-weight:600;width:38%}
+  .tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);background:rgba(245,181,0,.10);border:1px solid rgba(245,181,0,.3);border-radius:999px;padding:3px 10px;margin-bottom:10px}
+  .pill{display:inline-block;background:rgba(93,214,160,.12);border:1px solid rgba(93,214,160,.35);color:#5dd6a0;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+  .path{font-family:'IBM Plex Mono',monospace;background:rgba(245,181,0,.08);border:1px solid rgba(245,181,0,.25);border-radius:10px;padding:12px 14px;text-align:center;color:var(--gold-300);margin-top:8px}
+  code{font-family:'IBM Plex Mono',monospace;background:var(--ink-800);padding:1px 6px;border-radius:5px;font-size:13px;color:var(--gold-300)}
+  footer{text-align:center;color:var(--mut);font-size:12px;margin-top:40px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase}
+  @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:27px}td:first-child{width:46%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <span class="scope">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F5B500">
+          <circle cx="12" cy="12" r="7" stroke-width="1.5"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="1.6" fill="#F5B500"/>
+        </svg>
+      </span>
+      <span><span class="brand">Leak<span>Sniper</span></span><div class="sub">The Orchard</div></span>
+    </div>
+    <h1>Detección de filtraciones musicales</h1>
+    <p class="lead">SaaS white-label que monitorea YouTube y Spotify para cazar subidas no oficiales de temas no lanzados. Cliente objetivo: <b>The Orchard</b> (distribuidora de Sony Music).</p>
+    <div class="kpis">
+      <div class="kpi"><b>2</b><small>Plataformas</small></div>
+      <div class="kpi"><b>✓</b><small>Probado real</small></div>
+      <div class="kpi"><b>100%</b><small>White-label</small></div>
+      <div class="kpi"><b>MVP</b><small>Funcional</small></div>
+    </div>
+  </header>
+
+  <section>
+    <span class="tag">Qué es</span>
+    <p class="muted">Software web con login que <b>detecta filtraciones de música no lanzada</b>. Busca, por palabras clave, subidas no oficiales de los temas de un artista y las muestra en un panel — todo dentro de la plataforma, sin herramientas externas. Es <b>white-label</b>: la marca se personaliza por cliente.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">01</span> Qué construimos <span class="pill">ya funciona</span></h2>
+    <ul>
+      <li class="ok">Login + panel protegido; gestión de <b>artistas</b> y <b>keywords</b>.</li>
+      <li class="ok"><b>Motor de escaneo</b> (YouTube + Spotify): deduplica, controla cuota y filtra ruido (reacciones, type beats, lyric videos, lives, noticias) y falsos positivos (relevancia + canales oficiales).</li>
+      <li class="ok"><b>Notificaciones en vivo</b> (campanita), dashboard con KPIs, filtraciones <b>agrupadas por mes</b>, estados (nueva → revisada → takedown → resuelta).</li>
+      <li class="ok"><b>White-label</b> configurable desde Ajustes (marca, color, textos).</li>
+      <li class="ok"><b>Probado con datos reales:</b> detectó filtraciones reales en YouTube y en Spotify.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">02</span> Tecnologías y servicios</h2>
+    <table>
+      <tr><td>App (front + back)</td><td>Next.js 14 + TypeScript + Tailwind CSS</td></tr>
+      <tr><td>Base de datos / Login / Tiempo real</td><td>Supabase (Postgres + Auth + Realtime)</td></tr>
+      <tr><td>Hosting + escaneo automático</td><td>Vercel (con Cron)</td></tr>
+      <tr><td>Monitoreo</td><td>YouTube Data API v3 + Spotify Web API</td></tr>
+      <tr><td>Código</td><td>GitHub</td></tr>
+    </table>
+    <p class="muted" style="margin-top:14px">Modelo <b>"Bring Your Own Keys"</b>: el producto es el motor; el cliente conecta <b>sus propias credenciales</b> de YouTube/Spotify en Ajustes. <span class="pill">probado: guarda y conecta sin errores</span></p>
+  </section>
+
+  <section>
+    <h2><span class="n">03</span> Qué tiene que hacer The Orchard (incluida la cuota)</h2>
+    <p class="muted"><b>YouTube</b> (motor principal, gratis):</p>
+    <ul>
+      <li>Crear una <b>YouTube Data API Key</b> en Google Cloud.</li>
+      <li>Cuota gratis = <b>10.000 unidades/día (~100 búsquedas)</b>. Para más → llenar el formulario oficial y gratis <code>YouTube API Services - Audit and Quota Extension Form</code> (lo aprueban para casos legítimos como Sony).</li>
+      <li>Pegar la key en <b>Ajustes</b>.</li>
+    </ul>
+    <p class="muted" style="margin-top:16px"><b>Spotify</b> (complemento, requiere acceso):</p>
+    <ul>
+      <li>Crear una <b>app propia</b> bajo la cuenta de la empresa.</li>
+      <li>Solicitar <b>"Extended Quota Mode"</b> (formulario oficial gratis). Como son socios de Spotify, lo consiguen fácil.</li>
+      <li>Pegar <b>Client ID + Secret</b> en Ajustes.</li>
+    </ul>
+    <p class="muted" style="margin-top:16px"><b>Operación diaria:</b> cargar artistas + keywords (títulos de temas <b>NO lanzados</b>), configurar el canal oficial de cada artista, y revisar/gestionar filtraciones.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">04</span> Estado y qué falta para "enterprise"</h2>
+    <ul>
+      <li class="ok">Producto funcional y probado; código en GitHub.</li>
+      <li class="warn">Falta el <b>deploy a la nube</b> (Vercel) → URL pública.</li>
+      <li class="warn">Para venta formal a Sony: auth real + roles, DB de producción con backups, monitoreo (Sentry/uptime/audit log), seguridad (cuestionario de proveedor + DPA), y legal (entidad + contrato + SLA, con abogado).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">05</span> El camino</h2>
+    <div class="path">Deploy → Demo → Piloto pagado → (si dicen sí) → Endurecer enterprise</div>
+    <p class="muted" style="margin-top:14px">Ningún SaaS es "sin errores para siempre". Lo enterprise es <b>confiabilidad</b> (monitoreo + backups + soporte + SLA), no cero errores — y se construye a medida que crece la relación con el cliente.</p>
+  </section>
+
+  <footer>Leak Sniper · White-label · Contexto del proyecto</footer>
+</div>
+</body>
+</html>
