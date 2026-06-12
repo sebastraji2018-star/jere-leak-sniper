@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ArtistsManager, type ArtistRow } from "@/components/ArtistsManager";
 import type { RiskLevel } from "@/lib/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,8 @@ interface ArtistQueryRow {
 }
 
 export default async function ArtistasPage() {
+  const me = await getCurrentUser();
+  const canManage = me?.role === "admin";
   const supabase = createClient();
 
   let rows: ArtistRow[] = [];
@@ -55,7 +58,7 @@ export default async function ArtistasPage() {
           No se pudieron cargar los artistas. Revisa tu conexión con Supabase e intenta de nuevo.
         </div>
       ) : (
-        <ArtistsManager initial={rows} />
+        <ArtistsManager initial={rows} canManage={canManage} />
       )}
     </div>
   );

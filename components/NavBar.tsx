@@ -20,9 +20,11 @@ function timeAgo(iso: string): string {
 export function NavBar({
   clientName,
   brandName,
+  isAdmin,
 }: {
   clientName: string;
   brandName: string;
+  isAdmin: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -68,7 +70,13 @@ export function NavBar({
     { href: "/", label: "Panel" },
     { href: "/artistas", label: "Artistas" },
     { href: "/filtraciones", label: "Filtraciones", badge: true },
-    { href: "/ajustes", label: "Ajustes" },
+    // Solo admin: gestión de usuarios y ajustes
+    ...(isAdmin
+      ? [
+          { href: "/usuarios", label: "Usuarios" },
+          { href: "/ajustes", label: "Ajustes" },
+        ]
+      : []),
   ];
 
   return (

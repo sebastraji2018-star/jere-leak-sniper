@@ -1,14 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import type { LeakStatus, Platform, RiskLevel } from "@/lib/types";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import type { LeakStatus, Platform, RiskLevel, UserRole } from "@/lib/types";
 
 export interface ActionResult {
   ok: boolean;
   error?: string;
   id?: string;
 }
+
+// Error claro de permisos para acciones de solo-admin
+const NOT_ADMIN = "Solo los administradores pueden hacer esto.";
 
 function slugify(name: string): string {
   return name
@@ -27,6 +30,22 @@ async function requireAuth() {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("No autorizado");
   return supabase;
+}
+
+// Devuelve {supabase, user} solo si el usuario es admin; si no, lanza NOT_ADMIN.
+async function requireAdmin() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autorizado");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (profile?.role !== "admin") throw new Error(NOT_ADMIN);
+  return { supabase, user };
 }
 
 // ----------------------------- ARTISTAS -----------------------------
@@ -312,6 +331,89 @@ export async function updateSettings(input: {
     return { ok: true };
   } catch {
     return { ok: false, error: "Error inesperado al guardar." };
+  }
+}
+
+// --------------------------- USUARIOS (solo admin) ---------------------------
+function toEmail(raw: string): string {
+  const v = raw.trim();
+  return v.includes("@") ? v : `${v.toLowerCase()}@theorchard.com`;
+}
+
+export async function createUser(input: {
+  email: string;
+  password: string;
+  role: UserRole;
+  full_name?: string;
+}): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const email = toEmail(input.email || "");
+    if (!email || !email.includes("@"))
+      return { ok: false, error: "Usuario/email inválido." };
+    if (!input.password || input.password.length < 10)
+      return { ok: false, error: "La contraseña debe tener al menos 10 caracteres." };
+
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password: input.password,
+      email_confirm: true,
+    });
+    if (error) {
+      if (String(error.message).toLowerCase().includes("already"))
+        return { ok: false, error: "Ya existe un usuario con ese email." };
+      return { ok: false, error: "No se pudo crear el usuario." };
+    }
+    // El trigger crea el perfil (viewer). Ajustamos rol + nombre.
+    await admin
+      .from("profiles")
+      .upsert(
+        {
+          id: data.user.id,
+          email,
+          role: input.role === "admin" ? "admin" : "viewer",
+          full_name: input.full_name?.trim() || null,
+        },
+        { onConflict: "id" }
+      );
+    revalidatePath("/usuarios");
+    return { ok: true, id: data.user.id };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error && e.message === NOT_ADMIN ? NOT_ADMIN : "Error inesperado." };
+  }
+}
+
+export async function updateUserRole(userId: string, role: UserRole): Promise<ActionResult> {
+  try {
+    const { user } = await requireAdmin();
+    if (userId === user.id)
+      return { ok: false, error: "No puedes cambiar tu propio rol." };
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("profiles")
+      .update({ role: role === "admin" ? "admin" : "viewer" })
+      .eq("id", userId);
+    if (error) return { ok: false, error: "No se pudo actualizar el rol." };
+    revalidatePath("/usuarios");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error && e.message === NOT_ADMIN ? NOT_ADMIN : "Error inesperado." };
+  }
+}
+
+export async function deleteUser(userId: string): Promise<ActionResult> {
+  try {
+    const { user } = await requireAdmin();
+    if (userId === user.id)
+      return { ok: false, error: "No puedes borrar tu propia cuenta." };
+    const admin = createAdminClient();
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) return { ok: false, error: "No se pudo borrar el usuario." };
+    revalidatePath("/usuarios");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error && e.message === NOT_ADMIN ? NOT_ADMIN : "Error inesperado." };
   }
 }
 

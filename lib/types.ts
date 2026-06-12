@@ -1,5 +1,15 @@
 // Tipos compartidos del dominio Leak Sniper
 
+export type UserRole = "admin" | "viewer";
+
+export interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: UserRole;
+  created_at: string;
+}
+
 export type ArtistStatus = "active" | "paused";
 export type RiskLevel = "alto" | "medio" | "bajo";
 export type Platform = "youtube" | "spotify" | "all";

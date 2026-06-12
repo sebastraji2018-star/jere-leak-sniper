@@ -24,7 +24,13 @@ export interface ArtistRow {
 
 const RISKS: RiskLevel[] = ["alto", "medio", "bajo"];
 
-export function ArtistsManager({ initial }: { initial: ArtistRow[] }) {
+export function ArtistsManager({
+  initial,
+  canManage = true,
+}: {
+  initial: ArtistRow[];
+  canManage?: boolean;
+}) {
   const router = useRouter();
   const [rows, setRows] = useState<ArtistRow[]>(initial);
   const [adding, setAdding] = useState(false);
@@ -91,17 +97,19 @@ export function ArtistsManager({ initial }: { initial: ArtistRow[] }) {
         </div>
       )}
 
-      <div className="flex justify-end">
-        <button
-          onClick={() => {
-            setAdding((v) => !v);
-            setError(null);
-          }}
-          className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-gold-300"
-        >
-          {adding ? "Cancelar" : "+ Agregar artista"}
-        </button>
-      </div>
+      {canManage && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              setAdding((v) => !v);
+              setError(null);
+            }}
+            className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-gold-300"
+          >
+            {adding ? "Cancelar" : "+ Agregar artista"}
+          </button>
+        </div>
+      )}
 
       {adding && <ArtistForm onSubmit={handleCreate} onCancel={() => setAdding(false)} />}
 
@@ -180,27 +188,31 @@ export function ArtistsManager({ initial }: { initial: ArtistRow[] }) {
                         >
                           Keywords
                         </Link>
-                        <button
-                          onClick={() => handleToggle(a.id, a.status)}
-                          className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-white/60 transition hover:text-white/90"
-                        >
-                          {a.status === "active" ? "Pausar" : "Activar"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditing(a.id);
-                            setError(null);
-                          }}
-                          className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-white/60 transition hover:text-white/90"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(a.id, a.name)}
-                          className="rounded-md border border-risk-alto/20 px-2.5 py-1 text-xs text-risk-alto/80 transition hover:bg-risk-alto/10"
-                        >
-                          Borrar
-                        </button>
+                        {canManage && (
+                          <>
+                            <button
+                              onClick={() => handleToggle(a.id, a.status)}
+                              className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-white/60 transition hover:text-white/90"
+                            >
+                              {a.status === "active" ? "Pausar" : "Activar"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditing(a.id);
+                                setError(null);
+                              }}
+                              className="rounded-md border border-white/10 px-2.5 py-1 text-xs text-white/60 transition hover:text-white/90"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDelete(a.id, a.name)}
+                              className="rounded-md border border-risk-alto/20 px-2.5 py-1 text-xs text-risk-alto/80 transition hover:bg-risk-alto/10"
+                            >
+                              Borrar
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

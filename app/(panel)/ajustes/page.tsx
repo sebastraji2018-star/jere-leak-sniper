@@ -1,10 +1,16 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS, type Settings } from "@/lib/types";
 import { SettingsForm, type SettingsFormData } from "@/components/SettingsForm";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AjustesPage() {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.role !== "admin") redirect("/"); // ajustes solo para admin
+
   const supabase = createClient();
 
   let settings: Settings = DEFAULT_SETTINGS;
