@@ -211,8 +211,13 @@ export async function runScan(triggeredBy: ScanTrigger): Promise<ScanSummary> {
     // histórico). Usamos siempre el inicio del día para no perder subidas de hoy
     // aunque YouTube las indexe tarde; la deduplicación evita reavisar lo conocido.
     const publishedAfter = startOfTodayISO();
-    // Para Spotify (su búsqueda no filtra por fecha) descartamos por release_date
-    const spotifyCutoffDate = publishedAfter.slice(0, 10); // YYYY-MM-DD
+    // Para Spotify (su búsqueda no ordena por fecha y release_date no tiene hora)
+    // usamos una ventana de los últimos días para no perder leaks por zona horaria
+    // o indexación tardía. La deduplicación evita reavisar lo ya conocido.
+    const SPOTIFY_WINDOW_DAYS = 3;
+    const spotifyCutoffDate = new Date(Date.now() - SPOTIFY_WINDOW_DAYS * 86400000)
+      .toISOString()
+      .slice(0, 10); // YYYY-MM-DD
 
     // 5) Artistas activos, ordenados por riesgo (alto primero)
     const { data: artistsData } = await supabase
